@@ -2,6 +2,18 @@ const sequelize = require('../config/database');
 const User = require('./User');
 const Student = require('./Student');
 const PasswordResetToken = require('./PasswordResetToken');
+const EmailVerificationToken = require('./EmailVerificationToken');
+
+[
+  { name: 'User', model: User },
+  { name: 'Student', model: Student },
+  { name: 'PasswordResetToken', model: PasswordResetToken },
+  { name: 'EmailVerificationToken', model: EmailVerificationToken }
+].forEach(item => {
+  if (!item.model || !item.model.prototype || !item.model.prototype.constructor.name) {
+    throw new Error(`¡El modelo ${item.name} no se cargó correctamente! Revisa el archivo ${item.name}.js`);
+  }
+});
 
 User.hasOne(Student, {
   foreignKey: 'userId',
@@ -25,9 +37,21 @@ PasswordResetToken.belongsTo(User, {
   as: 'user',
 });
 
+User.hasMany(EmailVerificationToken, {
+  foreignKey: 'userId',
+  as: 'emailVerificationTokens',
+  onDelete: 'CASCADE',
+});
+
+EmailVerificationToken.belongsTo(User, {
+  foreignKey: 'userId',
+  as: 'user',
+});
+
 module.exports = {
   sequelize,
   User,
   Student,
   PasswordResetToken,
+  EmailVerificationToken,
 };

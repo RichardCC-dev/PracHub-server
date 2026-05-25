@@ -6,6 +6,16 @@ const validateRequest = require('../middlewares/validateRequest');
 const router = express.Router();
 
 router.post(
+  '/login',
+  [
+    body('email').isEmail().normalizeEmail().withMessage('Ingresa un correo válido.'),
+    body('password').notEmpty().withMessage('Ingresa tu contraseña.'),
+  ],
+  validateRequest,
+  authController.login,
+);
+
+router.post(
   '/students/register',
   [
     body('email').isEmail().normalizeEmail().withMessage('Ingresa un correo válido.'),
@@ -56,5 +66,7 @@ router.post(
   validateRequest,
   authController.resetPassword,
 );
+
+router.get('/verify-email/:token', authController.verifyEmail);
 
 module.exports = router;
