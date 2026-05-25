@@ -30,4 +30,31 @@ router.post(
   authController.registerStudent,
 );
 
+router.post(
+  '/forgot-password',
+  [
+    body('email').isEmail().normalizeEmail().withMessage('Ingresa un correo válido.'),
+  ],
+  validateRequest,
+  authController.requestPasswordReset,
+);
+
+router.post(
+  '/reset-password',
+  [
+    body('token').trim().isLength({ min: 64, max: 64 }).isHexadecimal().withMessage('El token de recuperación es inválido.'),
+    body('password')
+      .isLength({ min: 8 })
+      .withMessage('La contraseña debe tener al menos 8 caracteres, una mayúscula, una minúscula y un número.')
+      .matches(/[A-Z]/)
+      .withMessage('La contraseña debe tener al menos 8 caracteres, una mayúscula, una minúscula y un número.')
+      .matches(/[a-z]/)
+      .withMessage('La contraseña debe tener al menos 8 caracteres, una mayúscula, una minúscula y un número.')
+      .matches(/\d/)
+      .withMessage('La contraseña debe tener al menos 8 caracteres, una mayúscula, una minúscula y un número.'),
+  ],
+  validateRequest,
+  authController.resetPassword,
+);
+
 module.exports = router;
