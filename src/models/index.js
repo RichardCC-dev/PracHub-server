@@ -4,13 +4,15 @@ const Student = require('./Student');
 const Company = require('./Company');
 const PasswordResetToken = require('./PasswordResetToken');
 const EmailVerificationToken = require('./EmailVerificationToken');
+const Resume = require('./Resume');
 
 [
   { name: 'User', model: User },
   { name: 'Student', model: Student },
   { name: 'Company', model: Company },
   { name: 'PasswordResetToken', model: PasswordResetToken },
-  { name: 'EmailVerificationToken', model: EmailVerificationToken }
+  { name: 'EmailVerificationToken', model: EmailVerificationToken },
+  { name: 'Resume', model: Resume }
 ].forEach(item => {
   if (!item.model || !item.model.prototype || !item.model.prototype.constructor.name) {
     throw new Error(`¡El modelo ${item.name} no se cargó correctamente! Revisa el archivo ${item.name}.js`);
@@ -61,6 +63,17 @@ EmailVerificationToken.belongsTo(User, {
   as: 'user',
 });
 
+Student.hasOne(Resume, {
+  foreignKey: 'studentId',
+  as: 'resume',
+  onDelete: 'CASCADE',
+});
+
+Resume.belongsTo(Student, {
+  foreignKey: 'studentId',
+  as: 'student',
+});
+
 module.exports = {
   sequelize,
   User,
@@ -68,4 +81,5 @@ module.exports = {
   Company,
   PasswordResetToken,
   EmailVerificationToken,
+  Resume,
 };

@@ -1,6 +1,7 @@
 const jwt = require('jsonwebtoken');
+const { User, Student } = require('../models');
 
-const authenticate = (req, res, next) => {
+const authenticate = async (req, res, next) => {
   const authHeader = req.headers.authorization;
 
   if (!authHeader?.startsWith('Bearer ')) {
@@ -9,7 +10,18 @@ const authenticate = (req, res, next) => {
 
   try {
     const token = authHeader.split(' ')[1];
-    req.user = jwt.verify(token, process.env.JWT_SECRET || 'replace-this-secret');
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'replace-this-secret');
+
+    // Cargar el usuario con su perfil de estudiante
+    const user = await User.findByPk(decoded.id, {
+      include: [{ model: Student, as: 'studentProfile' }],
+    });
+
+    if (!user) {
+      return res.status(401).json({ message: 'Token inválido o expirado.' });
+    }
+
+    req.user = user;
     return next();
   } catch (error) {
     req.authError = error.message;
