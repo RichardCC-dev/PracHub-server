@@ -197,6 +197,56 @@ const sendCompanyWelcomeEmail = async ({ email, companyName, responsibleName }) 
   return info;
 };
 
+const sendOfferApprovedNotification = async ({ to, offerTitle, offerId }) => {
+  const transporter = await getTransporter();
+  const appUrl = process.env.APP_URL || process.env.CLIENT_URL || 'http://localhost:5173';
+
+  const info = await transporter.sendMail({
+    from: process.env.SMTP_FROM || '"PracHub" <noreply@prachub.pe>',
+    to,
+    subject: 'Tu oferta fue aprobada - PracHub',
+    text: `Tu oferta "${offerTitle}" fue aprobada y ya está visible en el catálogo.`,
+    html: emailBase(`
+      <h2 style="color:#064E3B;margin-top:0;">¡Oferta aprobada!</h2>
+      <p>Tu oferta <strong>"${offerTitle}"</strong> fue revisada y aprobada por nuestro equipo.</p>
+      <p>La oferta ya está visible en el catálogo y los estudiantes pueden postular.</p>
+      <a href="${appUrl}/company/offers/${offerId}" style="display:inline-block;background:#065f46;color:#fff;padding:12px 24px;border-radius:12px;text-decoration:none;font-weight:700;margin-top:8px;">
+        Ver oferta
+      </a>
+    `),
+  });
+
+  logPreview(info);
+  return info;
+};
+
+const sendOfferRejectedNotification = async ({ to, offerTitle, offerId, rejectionReason }) => {
+  const transporter = await getTransporter();
+  const appUrl = process.env.APP_URL || process.env.CLIENT_URL || 'http://localhost:5173';
+
+  const info = await transporter.sendMail({
+    from: process.env.SMTP_FROM || '"PracHub" <noreply@prachub.pe>',
+    to,
+    subject: 'Tu oferta necesita ajustes - PracHub',
+    text: `Tu oferta "${offerTitle}" no fue aprobada. Motivo: ${rejectionReason}`,
+    html: emailBase(`
+      <h2 style="color:#dc2626;margin-top:0;">Oferta no aprobada</h2>
+      <p>Tu oferta <strong>"${offerTitle}"</strong> fue revisada pero no puede publicarse en este momento.</p>
+      <div style="background:#fef2f2;border:1px solid #fecaca;padding:16px;border-radius:8px;margin:16px 0;">
+        <p style="margin:0;color:#7f1d1d;font-weight:600;">Motivo:</p>
+        <p style="margin:8px 0 0 0;color:#991b1b;">${rejectionReason}</p>
+      </div>
+      <p>Puedes editar la oferta y volver a enviarla para revisión.</p>
+      <a href="${appUrl}/company/offers/${offerId}/edit" style="display:inline-block;background:#065f46;color:#fff;padding:12px 24px;border-radius:12px;text-decoration:none;font-weight:700;margin-top:8px;">
+        Editar oferta
+      </a>
+    `),
+  });
+
+  logPreview(info);
+  return info;
+};
+
 module.exports = {
   sendEmailVerificationEmail,
   sendWelcomeEmail,
@@ -204,4 +254,6 @@ module.exports = {
   sendCompanyEmailVerificationEmail,
   sendCompanyRegistrationConfirmationEmail,
   sendCompanyWelcomeEmail,
+  sendOfferApprovedNotification,
+  sendOfferRejectedNotification,
 };
