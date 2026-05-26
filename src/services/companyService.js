@@ -26,6 +26,7 @@ const sanitizeCompany = (company) => ({
   companySize: company.companySize,
   websiteUrl: company.websiteUrl,
   logoUrl: company.logoUrl,
+  cultureTags: company.cultureTags || [],
   country: company.country,
   city: company.city,
   address: company.address,
@@ -299,16 +300,27 @@ const updateCompanyProfile = async (userId, payload) => {
     'city',
     'address',
     'responsiblePhone',
+    'tradeName',
+    'cultureTags',
   ];
 
   const updates = {};
   allowedUpdates.forEach((field) => {
     if (payload[field] !== undefined) {
-      updates[field] = payload[field].trim();
+      if (field === 'cultureTags') {
+        updates[field] = payload[field]; // Array JSON, no hacer trim
+      } else if (typeof payload[field] === 'string') {
+        updates[field] = payload[field].trim();
+      } else {
+        updates[field] = payload[field];
+      }
     }
   });
 
   await user.companyProfile.update(updates);
+  
+  // Recargar para obtener datos frescos
+  await user.companyProfile.reload();
 
   return sanitizeUser(user, user.companyProfile);
 };

@@ -55,6 +55,13 @@ const Company = sequelize.define(
       allowNull: true,
       field: 'logo_url',
     },
+    cultureTags: {
+      type: DataTypes.JSON,
+      allowNull: true,
+      field: 'culture_tags',
+      defaultValue: [],
+      comment: 'Array de hasta 3 etiquetas de cultura organizacional',
+    },
     country: {
       type: DataTypes.STRING(100),
       allowNull: false,

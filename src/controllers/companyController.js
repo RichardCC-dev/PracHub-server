@@ -30,7 +30,7 @@ const getProfile = async (req, res, next) => {
     const result = await companyService.getCompanyProfile(req.user.id);
     return res.status(200).json({
       message: 'Perfil de empresa obtenido correctamente.',
-      ...result,
+      user: result,
     });
   } catch (error) {
     return next(error);
@@ -42,7 +42,7 @@ const updateProfile = async (req, res, next) => {
     const result = await companyService.updateCompanyProfile(req.user.id, req.body);
     return res.status(200).json({
       message: 'Perfil de empresa actualizado correctamente.',
-      ...result,
+      user: result,
     });
   } catch (error) {
     return next(error);

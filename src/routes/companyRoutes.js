@@ -136,7 +136,13 @@ router.patch(
     body('description')
       .optional({ checkFalsy: true })
       .trim()
-      .isLength({ max: 1000 })
+      .isLength({ max: 500 })
+      .withMessage('La descripción no puede exceder 500 caracteres.')
+      .escape(),
+    body('tradeName')
+      .optional({ checkFalsy: true })
+      .trim()
+      .isLength({ max: 200 })
       .escape(),
     body('websiteUrl')
       .optional({ checkFalsy: true })
@@ -146,7 +152,7 @@ router.patch(
     body('logoUrl')
       .optional({ checkFalsy: true })
       .trim()
-      .isURL()
+      .isURL({ require_tld: false, require_protocol: true })
       .withMessage('La URL del logo no es válida.'),
     body('city')
       .optional({ checkFalsy: true })
@@ -163,6 +169,19 @@ router.patch(
       .trim()
       .isLength({ min: 6, max: 30 })
       .escape(),
+    body('cultureTags')
+      .optional({ checkFalsy: true })
+      .isArray({ max: 3 })
+      .withMessage('Solo se permiten hasta 3 etiquetas de cultura.')
+      .custom((value) => {
+        if (!Array.isArray(value)) return true;
+        return value.every(tag =>
+          typeof tag === 'string' &&
+          tag.length >= 2 &&
+          tag.length <= 30
+        );
+      })
+      .withMessage('Cada etiqueta debe tener entre 2 y 30 caracteres.'),
   ],
   validateRequest,
   companyController.updateProfile,
