@@ -1,7 +1,7 @@
 const crypto = require('node:crypto');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const { User, Student, PasswordResetToken, EmailVerificationToken, sequelize } = require('../models');
+const { User, Student, Company, PasswordResetToken, EmailVerificationToken, sequelize } = require('../models');
 const { getUniversityByEmail } = require('../utils/universityDomains');
 const emailService = require('./emailService');
 
@@ -115,12 +115,37 @@ const registerStudent = async (payload) => {
   });
 };
 
+const sanitizeCompany = (company) => ({
+  id: company.id,
+  taxId: company.taxId,
+  legalName: company.legalName,
+  tradeName: company.tradeName,
+  description: company.description,
+  industry: company.industry,
+  companySize: company.companySize,
+  websiteUrl: company.websiteUrl,
+  logoUrl: company.logoUrl,
+  country: company.country,
+  city: company.city,
+  address: company.address,
+  responsibleName: company.responsibleName,
+  responsiblePosition: company.responsiblePosition,
+  responsiblePhone: company.responsiblePhone,
+  verificationStatus: company.verificationStatus,
+  isVerified: company.isVerified,
+  canPublishOffers: company.canPublishOffers,
+  pendingOffersCount: company.pendingOffersCount,
+  createdAt: company.createdAt,
+});
+
 const login = async (payload) => {
   const email = payload.email.toLowerCase().trim();
 
+  const includeModels = [{ model: Student, as: 'studentProfile' }];
+
   const user = await User.findOne({
     where: { email },
-    include: [{ model: Student, as: 'studentProfile' }],
+    include: includeModels,
   });
 
   if (!user || !(await bcrypt.compare(payload.password, user.passwordHash))) {
@@ -129,9 +154,7 @@ const login = async (payload) => {
     throw error;
   }
 
-  const studentProfile = user.studentProfile ? sanitizeStudent(user.studentProfile) : null;
-
-  return {
+  const result = {
     token: signToken(user),
     user: {
       id: user.id,
@@ -139,9 +162,21 @@ const login = async (payload) => {
       role: user.role,
       authProvider: user.authProvider,
       isEmailVerified: user.isEmailVerified,
-      studentProfile,
     },
   };
+
+  if (user.role === 'student' && user.studentProfile) {
+    result.user.studentProfile = sanitizeStudent(user.studentProfile);
+  }
+
+  if (user.role === 'company') {
+    const company = await Company.findOne({ where: { userId: user.id } });
+    if (company) {
+      result.user.companyProfile = sanitizeCompany(company);
+    }
+  }
+
+  return result;
 };
 
 const requestPasswordReset = async (payload) => {
@@ -253,22 +288,53 @@ const verifyEmail = async (token) => {
     await verificationToken.update({ usedAt: new Date() }, { transaction });
   });
 
-  const user = await User.findByPk(verificationToken.user.id, {
-    include: [{ model: Student, as: 'studentProfile' }],
+  // Recargar usuario desde BD para obtener isEmailVerified actualizado
+  const user = await User.findOne({
+    where: { id: verificationToken.user.id },
   });
 
-  emailService.sendWelcomeEmail({
-    email: user.email,
-    firstName: user.studentProfile?.firstName || 'estudiante',
-  }).catch((err) => {
-    console.error('Welcome email could not be sent:', err.message);
-  });
+  console.log('[AuthService] Usuario recargado, isEmailVerified:', user.isEmailVerified);
 
-  return {
+  const result = {
     message: 'Correo verificado correctamente. Ya puedes usar tu cuenta.',
     token: signToken(user),
-    user: sanitizeUser(user, user.studentProfile),
+    user: {
+      id: user.id,
+      email: user.email,
+      role: user.role,
+      authProvider: user.authProvider,
+      isEmailVerified: true,
+    },
   };
+
+  if (user.role === 'student') {
+    const student = await Student.findOne({ where: { userId: user.id } });
+    if (student) {
+      result.user.studentProfile = sanitizeStudent(student);
+    }
+    emailService.sendWelcomeEmail({
+      email: user.email,
+      firstName: student?.firstName || 'estudiante',
+    }).catch((err) => {
+      console.error('Welcome email could not be sent:', err.message);
+    });
+  }
+
+  if (user.role === 'company') {
+    const company = await Company.findOne({ where: { userId: user.id } });
+    if (company) {
+      result.user.companyProfile = sanitizeCompany(company);
+    }
+    emailService.sendCompanyWelcomeEmail({
+      email: user.email,
+      companyName: company?.legalName || 'su empresa',
+      responsibleName: company?.responsibleName || 'responsable',
+    }).catch((err) => {
+      console.error('Company welcome email could not be sent:', err.message);
+    });
+  }
+
+  return result;
 };
 
 module.exports = {

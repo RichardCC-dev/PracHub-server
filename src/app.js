@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const authRoutes = require('./routes/authRoutes');
+const companyRoutes = require('./routes/companyRoutes');
 const errorHandler = require('./middlewares/errorHandler');
 
 const app = express();
@@ -15,6 +16,7 @@ app.get('/health', (req, res) => {
 });
 
 app.use('/api/auth', authRoutes);
+app.use('/api/companies', companyRoutes);
 app.use(errorHandler);
 
 module.exports = app;

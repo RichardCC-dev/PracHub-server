@@ -1,4 +1,6 @@
 const errorHandler = (error, req, res, next) => {
+  console.error('[ErrorHandler]', error.message, '- Status:', error.statusCode || 500);
+
   if (res.headersSent) {
     return next(error);
   }
