@@ -1,4 +1,5 @@
 const resumeService = require('../services/resumeService');
+const resumePdfService = require('../services/resumePdfService');
 
 const getResume = async (req, res, next) => {
   try {
@@ -43,9 +44,25 @@ const improveFullSection = async (req, res, next) => {
   }
 };
 
+const exportPdf = async (req, res, next) => {
+  try {
+    const studentId = req.user.studentProfile.id;
+    const { template } = req.body;
+    const { buffer, filename } = await resumePdfService.exportResumePdf(studentId, template);
+
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    res.setHeader('Cache-Control', 'no-store');
+    return res.status(200).send(buffer);
+  } catch (error) {
+    return next(error);
+  }
+};
+
 module.exports = {
   getResume,
   updateSection,
   improveField,
   improveFullSection,
+  exportPdf,
 };

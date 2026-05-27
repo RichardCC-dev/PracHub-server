@@ -10,6 +10,17 @@ router.use(authMiddleware);
 
 router.get('/', resumeController.getResume);
 
+router.post(
+  '/export-pdf',
+  [
+    body('template')
+      .isIn(['harvard', 'investment-banking'])
+      .withMessage('Selecciona una plantilla válida: harvard o investment-banking.'),
+  ],
+  validateRequest,
+  resumeController.exportPdf,
+);
+
 router.put(
   '/:section',
   [
