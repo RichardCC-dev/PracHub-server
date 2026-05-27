@@ -38,4 +38,8 @@ router.put(
 router.post('/improve/:section/:field', resumeController.improveField);
 router.post('/improve-section/:section', resumeController.improveFullSection);
 
+router.get('/versions', resumeController.getVersions);
+router.post('/versions/:versionId/restore', resumeController.restoreVersion);
+router.delete('/versions/:versionId', resumeController.deleteVersion);
+
 module.exports = router;

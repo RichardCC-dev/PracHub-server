@@ -24,11 +24,21 @@ const parsePlainResume = (raw) => {
 
 const calculateCompletion = (resume) => {
   // Experiencia es opcional: no afecta el porcentaje
+  // Certificaciones también son opcionales
   const sections = [
     { weight: 20, filled: ['fullName', 'email', 'phone'].filter(f => resume.personal?.[f]?.trim()).length, total: 3 },
     { weight: 20, filled: resume.profile?.summary?.trim() ? 1 : 0, total: 1 },
     { weight: 20, filled: (resume.education?.items?.length > 0 && resume.education.items.some(e => e.degree?.trim() || e.institution?.trim())) ? 1 : 0, total: 1 },
-    { weight: 20, filled: ['technical', 'soft'].filter(f => resume.skills?.[f]?.trim()).length, total: 2 },
+    {
+      weight: 20,
+      filled: [
+        // Habilidades técnicas: verificar si hay áreas con contenido o el campo technical legacy
+        (resume.skills?.areas?.some(a => a.area?.trim() || a.skills?.trim()) || resume.skills?.technical?.trim()) ? 1 : 0,
+        // Habilidades blandas
+        resume.skills?.soft?.trim() ? 1 : 0,
+      ].filter(Boolean).length,
+      total: 2,
+    },
     { weight: 10, filled: resume.languages?.list?.trim() ? 1 : 0, total: 1 },
     { weight: 10, filled: (resume.projects?.items?.length > 0 && resume.projects.items.some(p => p.title?.trim())) ? 1 : 0, total: 1 },
   ];

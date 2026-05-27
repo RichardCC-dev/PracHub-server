@@ -1,5 +1,6 @@
 const resumeService = require('../services/resumeService');
 const resumePdfService = require('../services/resumePdfService');
+const resumeVersionService = require('../services/resumeVersionService');
 
 const getResume = async (req, res, next) => {
   try {
@@ -59,10 +60,49 @@ const exportPdf = async (req, res, next) => {
   }
 };
 
+const getVersions = async (req, res, next) => {
+  try {
+    const studentId = req.user.studentProfile.id;
+    const limit = parseInt(req.query.limit, 10) || 20;
+    const versions = await resumeVersionService.getVersionsByStudent(studentId, limit);
+    return res.status(200).json(versions);
+  } catch (error) {
+    return next(error);
+  }
+};
+
+const restoreVersion = async (req, res, next) => {
+  try {
+    const { versionId } = req.params;
+    const studentId = req.user.studentProfile.id;
+    const restored = await resumeVersionService.restoreVersion(versionId, studentId);
+    return res.status(200).json({
+      message: 'Versión restaurada correctamente.',
+      resume: restored,
+    });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+const deleteVersion = async (req, res, next) => {
+  try {
+    const { versionId } = req.params;
+    const studentId = req.user.studentProfile.id;
+    const result = await resumeVersionService.deleteVersion(versionId, studentId);
+    return res.status(200).json(result);
+  } catch (error) {
+    return next(error);
+  }
+};
+
 module.exports = {
   getResume,
   updateSection,
   improveField,
   improveFullSection,
   exportPdf,
+  getVersions,
+  restoreVersion,
+  deleteVersion,
 };

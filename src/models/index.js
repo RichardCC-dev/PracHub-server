@@ -5,6 +5,7 @@ const Company = require('./Company');
 const PasswordResetToken = require('./PasswordResetToken');
 const EmailVerificationToken = require('./EmailVerificationToken');
 const Resume = require('./Resume');
+const ResumeVersion = require('./ResumeVersion');
 const Offer = require('./Offer');
 
 [
@@ -14,6 +15,7 @@ const Offer = require('./Offer');
   { name: 'PasswordResetToken', model: PasswordResetToken },
   { name: 'EmailVerificationToken', model: EmailVerificationToken },
   { name: 'Resume', model: Resume },
+  { name: 'ResumeVersion', model: ResumeVersion },
   { name: 'Offer', model: Offer }
 ].forEach(item => {
   if (!item.model || !item.model.prototype || !item.model.prototype.constructor.name) {
@@ -76,6 +78,17 @@ Resume.belongsTo(Student, {
   as: 'student',
 });
 
+Student.hasMany(ResumeVersion, {
+  foreignKey: 'studentId',
+  as: 'resumeVersions',
+  onDelete: 'CASCADE',
+});
+
+ResumeVersion.belongsTo(Student, {
+  foreignKey: 'studentId',
+  as: 'student',
+});
+
 // Relaciones de Offer
 Company.hasMany(Offer, {
   foreignKey: 'companyId',
@@ -106,5 +119,6 @@ module.exports = {
   PasswordResetToken,
   EmailVerificationToken,
   Resume,
+  ResumeVersion,
   Offer,
 };

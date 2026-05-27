@@ -1,5 +1,6 @@
 const puppeteer = require('puppeteer');
 const { getResume } = require('./resumeService');
+const { createVersion } = require('./resumeVersionService');
 
 const ALLOWED_TEMPLATES = ['harvard', 'investment-banking'];
 
@@ -180,6 +181,10 @@ const exportResumePdf = async (studentId, template) => {
     const pdfData = await page.pdf({ format: 'A4', printBackground: true, preferCSSPageSize: true });
     const buffer = Buffer.isBuffer(pdfData) ? pdfData : Buffer.from(pdfData);
     const filename = `${normalizeFilePart(resume.personal?.fullName)}-${template}-${formatDateForFile()}.pdf`;
+
+    // Guardar versión en el historial después de exportar exitosamente
+    await createVersion(studentId, template, null);
+
     return { buffer, filename };
   } finally {
     await browser.close();
