@@ -15,6 +15,10 @@ const Resume = sequelize.define(
       unique: true,
       field: 'student_id',
     },
+    profile: {
+      type: DataTypes.JSON,
+      allowNull: true,
+    },
     personal: {
       type: DataTypes.JSON,
       allowNull: true,
@@ -36,6 +40,10 @@ const Resume = sequelize.define(
       allowNull: true,
     },
     projects: {
+      type: DataTypes.JSON,
+      allowNull: true,
+    },
+    certifications: {
       type: DataTypes.JSON,
       allowNull: true,
     },

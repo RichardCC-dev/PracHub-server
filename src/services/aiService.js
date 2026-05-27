@@ -28,8 +28,10 @@ const improveSection = async ({ section, data }) => {
 
     let dataText = '';
     
-    // Manejar secciones con arrays (experiencia, proyectos)
-    if (section === 'experience' && data.items && Array.isArray(data.items)) {
+    // Manejar perfil profesional
+    if (section === 'profile') {
+      dataText = data.summary || '';
+    } else if (section === 'experience' && data.items && Array.isArray(data.items)) {
       dataText = data.items
         .filter(item => Object.values(item).some(v => v && v.trim() !== ''))
         .map((item, index) => 
@@ -52,13 +54,17 @@ const improveSection = async ({ section, data }) => {
     }
 
     let jsonStructure;
-if (section === 'experience') {
-  jsonStructure = 'Devuelve SOLO un objeto JSON con esta estructura exacta: {"items": [{"company": "...", "role": "...", "description": "..."}]}';
-} else if (section === 'projects') {
-  jsonStructure = 'Devuelve SOLO un objeto JSON con esta estructura exacta: {"items": [{"title": "...", "description": "..."}]}';
-} else {
-  jsonStructure = 'Devuelve SOLO un objeto JSON con los campos mejorados';
-}
+    if (section === 'profile') {
+      jsonStructure = 'Devuelve SOLO un objeto JSON con esta estructura exacta: {"summary": "..."}';
+    } else if (section === 'skills') {
+      jsonStructure = 'Devuelve SOLO un objeto JSON con esta estructura exacta: {"technical": "...", "soft": "..."}';
+    } else if (section === 'experience') {
+      jsonStructure = 'Devuelve SOLO un objeto JSON con esta estructura exacta: {"items": [{"company": "...", "role": "...", "description": "..."}]}';
+    } else if (section === 'projects') {
+      jsonStructure = 'Devuelve SOLO un objeto JSON con esta estructura exacta: {"items": [{"title": "...", "description": "..."}]}';
+    } else {
+      jsonStructure = 'Devuelve SOLO un objeto JSON con los campos mejorados';
+    }
 
 const prompt = `Eres un experto en redacción de CVs para estudiantes universitarios. Mejora la siguiente sección "${section}" manteniendo todos los campos. 
 
