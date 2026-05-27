@@ -133,21 +133,24 @@ const renderInvestmentBankingTemplate = (resume) => {
 <body>
   <h1>${escapeHtml(data.personal.fullName || 'Curriculum Vitae')}</h1>
   ${contact ? `<div class="contact">${contact}</div>` : ''}
-  ${renderSection('Education', data.educationItems.map(item => `
+  ${renderSection('Perfil Profesional', data.profile.summary ? `<p>${escapeHtml(data.profile.summary)}</p>` : '')}
+  ${renderSection('Formación Académica', data.educationItems.map(item => `
     <div>
       <div class="row"><p class="title">${escapeHtml(item.institution)}</p><p>${escapeHtml([item.startDate, item.endDate].filter(Boolean).join(' – '))}</p></div>
       <p class="italic">${escapeHtml(item.degree)}</p>
-      ${item.courses ? `<p class="muted">Relevant Coursework: ${escapeHtml(item.courses)}</p>` : ''}
+      ${item.courses ? `<p class="muted">Cursos relevantes: ${escapeHtml(item.courses)}</p>` : ''}
     </div>`).join(''))}
-  ${renderSection('Professional Experience', data.experienceItems.map(item => `
+  ${renderSection('Experiencia Profesional', data.experienceItems.map(item => `
     <div>
       <div class="row"><p class="title">${escapeHtml(item.company || item.role)}</p><p>${escapeHtml(item.period)}</p></div>
       ${item.company && item.role ? `<p class="italic">${escapeHtml(item.role)}</p>` : ''}
       ${renderBullets(splitList(item.description))}
     </div>`).join(''))}
-  ${renderSection('Leadership & Projects', data.projectItems.map(item => `
+  ${renderSection('Proyectos', data.projectItems.map(item => `
     <div><p class="title">${escapeHtml(item.title)}</p>${renderBullets(asArray(item.bullets).length ? asArray(item.bullets) : splitList(item.description))}</div>`).join(''))}
-  ${renderSection('Skills, Certifications & Languages', `${data.certificationItems.map(item => `<p><span class="title">${escapeHtml(item.name)}:</span> ${escapeHtml(item.issuer || '')}${item.date ? `, ${escapeHtml(item.date)}` : ''}</p>`).join('')}${data.skillAreas.map(item => `<p><span class="title">${escapeHtml(item.area || 'Skills')}:</span> ${escapeHtml(item.skills)}</p>`).join('')}${data.skills.technical ? `<p><span class="title">Technical:</span> ${escapeHtml(data.skills.technical)}</p>` : ''}${data.skills.soft ? `<p><span class="title">Interpersonal:</span> ${escapeHtml(data.skills.soft)}</p>` : ''}${data.languages.list ? `<p><span class="title">Languages:</span> ${escapeHtml(data.languages.list)}</p>` : ''}`)}
+  ${renderSection('Certificaciones', data.certificationItems.map(item => `<p><span class="title">${escapeHtml(item.name)}</span>${item.issuer ? ` — ${escapeHtml(item.issuer)}` : ''}${item.date ? ` <span class="muted">(${escapeHtml(item.date)})</span>` : ''}</p>`).join(''))}
+  ${renderSection('Habilidades', `${data.skillAreas.map(item => `<p><span class="title">${escapeHtml(item.area || 'Técnicas')}:</span> ${escapeHtml(item.skills)}</p>`).join('')}${data.skills.technical ? `<p><span class="title">Técnicas:</span> ${escapeHtml(data.skills.technical)}</p>` : ''}${data.skills.soft ? `<p><span class="title">Blandas:</span> ${escapeHtml(data.skills.soft)}</p>` : ''}`)}
+  ${renderSection('Idiomas', data.languages.list ? `<p>${escapeHtml(data.languages.list)}</p>` : '')}
 </body>
 </html>`;
 };
