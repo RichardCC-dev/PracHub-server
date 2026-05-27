@@ -20,7 +20,7 @@ const getPendingOffers = async () => {
         ],
       },
     ],
-    order: [['createdAt', 'ASC']],
+    order: [['created_at', 'ASC']],
   });
 
   // Marcar las que tienen más de 48h pendientes
@@ -47,7 +47,7 @@ const getOfferStats = async () => {
   const overdue = await Offer.count({
     where: {
       status: 'pending',
-      createdAt: {
+      created_at: {
         [Op.lt]: new Date(Date.now() - PENDING_REVIEW_THRESHOLD_HOURS * 60 * 60 * 1000),
       },
     },

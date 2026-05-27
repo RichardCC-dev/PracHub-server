@@ -1,5 +1,5 @@
 const jwt = require('jsonwebtoken');
-const { User, Student } = require('../models');
+const { User, Student, Company } = require('../models');
 
 const authenticate = async (req, res, next) => {
   const authHeader = req.headers.authorization;
@@ -12,9 +12,11 @@ const authenticate = async (req, res, next) => {
     const token = authHeader.split(' ')[1];
     const decoded = jwt.verify(token, process.env.JWT_SECRET || 'replace-this-secret');
 
-    // Cargar el usuario con su perfil de estudiante
     const user = await User.findByPk(decoded.id, {
-      include: [{ model: Student, as: 'studentProfile' }],
+      include: [
+        { model: Student, as: 'studentProfile' },
+        { model: Company, as: 'companyProfile' },
+      ],
     });
 
     if (!user) {
