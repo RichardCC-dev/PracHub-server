@@ -76,7 +76,11 @@ const updateSection = async (studentId, section, data) => {
 
   const cleanData = ensurePlainObject(data);
   const currentSection = ensurePlainObject(resume[section]);
-  const newSectionValue = { ...currentSection, ...cleanData };
+  // Si el payload trae 'items' explícitamente, reemplazar la sección completa (no merge)
+  // para que limpiar/restaurar funcione correctamente
+  const newSectionValue = ('items' in cleanData)
+    ? cleanData
+    : { ...currentSection, ...cleanData };
 
   const plainResume = parsePlainResume(resume.toJSON());
   plainResume[section] = newSectionValue;
