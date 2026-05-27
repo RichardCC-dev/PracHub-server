@@ -27,7 +27,7 @@ const calculateCompletion = (resume) => {
   const sections = [
     { weight: 20, filled: ['fullName', 'email', 'phone'].filter(f => resume.personal?.[f]?.trim()).length, total: 3 },
     { weight: 20, filled: resume.profile?.summary?.trim() ? 1 : 0, total: 1 },
-    { weight: 20, filled: ['degree', 'institution'].filter(f => resume.education?.[f]?.trim()).length, total: 2 },
+    { weight: 20, filled: (resume.education?.items?.length > 0 && resume.education.items.some(e => e.degree?.trim() || e.institution?.trim())) ? 1 : 0, total: 1 },
     { weight: 20, filled: ['technical', 'soft'].filter(f => resume.skills?.[f]?.trim()).length, total: 2 },
     { weight: 10, filled: resume.languages?.list?.trim() ? 1 : 0, total: 1 },
     { weight: 10, filled: (resume.projects?.items?.length > 0 && resume.projects.items.some(p => p.title?.trim())) ? 1 : 0, total: 1 },
@@ -44,7 +44,7 @@ const getOrCreateResume = async (studentId) => {
       studentId,
       profile: {},
       personal: {},
-      education: {},
+      education: { items: [] },
       certifications: {},
       experience: {},
       skills: {},
