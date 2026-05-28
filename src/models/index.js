@@ -7,7 +7,10 @@ const EmailVerificationToken = require('./EmailVerificationToken');
 const Resume = require('./Resume');
 const ResumeVersion = require('./ResumeVersion');
 const Offer = require('./Offer');
+<<<<<<< HEAD
 const Application = require('./Application');
+=======
+>>>>>>> ecb4d48 (chore: actualiza dependencias y modelos tras rebase con develop)
 const Simulation = require('./Simulation');
 
 // Validación de carga de todos los modelos (10 en total)
@@ -20,7 +23,10 @@ const Simulation = require('./Simulation');
   { name: 'Resume', model: Resume },
   { name: 'ResumeVersion', model: ResumeVersion },
   { name: 'Offer', model: Offer },
+<<<<<<< HEAD
   { name: 'Application', model: Application },
+=======
+>>>>>>> ecb4d48 (chore: actualiza dependencias y modelos tras rebase con develop)
   { name: 'Simulation', model: Simulation }
 ].forEach(item => {
   if (!item.model || !item.model.prototype || !item.model.prototype.constructor.name) {
@@ -28,10 +34,14 @@ const Simulation = require('./Simulation');
   }
 });
 
+<<<<<<< HEAD
 // ==========================================
 // Relaciones de Usuarios, Perfiles y Tokens
 // ==========================================
 
+=======
+// --- Relaciones de User ---
+>>>>>>> ecb4d48 (chore: actualiza dependencias y modelos tras rebase con develop)
 User.hasOne(Student, {
   foreignKey: 'userId',
   as: 'studentProfile',
@@ -76,10 +86,14 @@ EmailVerificationToken.belongsTo(User, {
   as: 'user',
 });
 
+<<<<<<< HEAD
 // ==========================================
 // Relaciones del Estudiante (CVs y Simulaciones)
 // ==========================================
 
+=======
+// --- Relaciones de Student ---
+>>>>>>> ecb4d48 (chore: actualiza dependencias y modelos tras rebase con develop)
 Student.hasOne(Resume, {
   foreignKey: 'studentId',
   as: 'resume',
@@ -102,7 +116,10 @@ ResumeVersion.belongsTo(Student, {
   as: 'student',
 });
 
+<<<<<<< HEAD
 // Nueva característica: Simulación de entrevistas con IA
+=======
+>>>>>>> ecb4d48 (chore: actualiza dependencias y modelos tras rebase con develop)
 Student.hasMany(Simulation, {
   foreignKey: 'studentId',
   as: 'simulations',
@@ -114,10 +131,14 @@ Simulation.belongsTo(Student, {
   as: 'student',
 });
 
+<<<<<<< HEAD
 // ==========================================
 // Relaciones de Ofertas Laborales (Offer)
 // ==========================================
 
+=======
+// --- Relaciones de Offer ---
+>>>>>>> ecb4d48 (chore: actualiza dependencias y modelos tras rebase con develop)
 Company.hasMany(Offer, {
   foreignKey: 'companyId',
   as: 'offers',
@@ -139,6 +160,7 @@ Offer.belongsTo(User, {
   as: 'moderator',
 });
 
+<<<<<<< HEAD
 // ==========================================
 // Relaciones de Postulaciones (Application)
 // ==========================================
@@ -176,6 +198,8 @@ Application.belongsTo(Resume, {
   as: 'resume',
 });
 
+=======
+>>>>>>> ecb4d48 (chore: actualiza dependencias y modelos tras rebase con develop)
 module.exports = {
   sequelize,
   User,
@@ -186,6 +210,9 @@ module.exports = {
   Resume,
   ResumeVersion,
   Offer,
+<<<<<<< HEAD
   Application,
+=======
+>>>>>>> ecb4d48 (chore: actualiza dependencias y modelos tras rebase con develop)
   Simulation,
 };
