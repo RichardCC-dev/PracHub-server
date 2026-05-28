@@ -6,7 +6,7 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 const getSystemPrompt = (role, career, sector) => {
   const contextInfo = career ? `El candidato estudia ${career}` : 'El candidato es universitario';
   const sectorInfo = sector ? ` y quiere trabajar en el sector de ${sector}` : '';
-  return `Eres un reclutador senior llamado "Marco" de una empresa reconocida. Estás entrevistando a un candidato para prácticas profesionales en el área de ${role}. ${contextInfo}${sectorInfo}.
+  return `Eres un reclutador senior llamado "Marco" de una empresa reconocida tienes que especificar la empresa y el empleo que ofreces. Estás entrevistando a un candidato para prácticas profesionales en el área de ${role}. ${contextInfo}${sectorInfo}.
 
 TU AGENDA DE ENTREVISTA (sigue este orden, avanza al siguiente bloque después de 1-2 respuestas por tema):
 1. Presentación y motivación: por qué le interesa el rol y la empresa.
@@ -41,7 +41,7 @@ const ensureArray = (historyData) => {
 };
 
 const chatWithGemini = async (chatHistory, simulatedRole, newMessage, career, sector) => {
-  const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash-lite" });
+  const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
   const safeChatHistory = ensureArray(chatHistory);
 
   // Filtramos solo mensajes con contenido real (excluye system prompt y vacíos)
@@ -147,7 +147,7 @@ const generateFallbackSummary = (chatHistory) => {
 };
 
 const generateSimulationSummary = async (chatHistory) => {
-  const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash-lite" });
+  const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
   const safeChatHistory = ensureArray(chatHistory);
   
   const formattedHistory = safeChatHistory
@@ -167,7 +167,7 @@ Genera un resumen crítico del desempeño del candidato en formato JSON estricto
 
 Reglas estrictas de evaluación:
 - Sé riguroso. Penaliza respuestas genéricas, falta del método STAR y falta de impacto real. Un candidato promedio debe rondar los 60-70 puntos. Solo un talento excepcional obtiene más de 85.
-- El "feedbackSummary" debe ser un solo párrafo de 3 a 4 oraciones precisas destacando los puntos fuertes demostrados y, de manera crítica, sus áreas débiles o falta de profundidad. No uses listas, usa un párrafo directo y profesional.`;
+- El "feedbackSummary" debe ser un solo párrafo de 3 a 4 oraciones precisas destacando los puntos fuertes demostrados y, de manera crítica, sus áreas débiles o falta de profundidad. No uses listas, usa un párrafo directo y profesional. Ademas de si sus repuestas les falta mas capacidad de comunicacion o no va al punto.`;
 
   // Reintento con backoff si hay 429
   const tryGenerate = async (retries = 2, delayMs = 20000) => {
