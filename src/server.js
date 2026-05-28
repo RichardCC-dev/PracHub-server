@@ -7,7 +7,9 @@ const PORT = process.env.PORT || 4000;
 const startServer = async () => {
   try {
     await sequelize.authenticate();
-    await sequelize.sync({ alter: process.env.NODE_ENV === 'development' });
+    // Desactivado alter para evitar 'Too many keys' error
+    // Usar 'npm run sync-db' manualmente cuando se necesiten cambios en BD
+    await sequelize.sync({ alter: false });
 
     app.listen(PORT, () => {
       console.log(`PracHub API listening on port ${PORT}`);

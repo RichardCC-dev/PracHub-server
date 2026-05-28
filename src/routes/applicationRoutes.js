@@ -15,7 +15,7 @@ router.post(
   [
     body('offerId').isInt({ min: 1 }),
     body('resumeId').isInt({ min: 1 }),
-    body('coverLetter').optional().isString().trim().isLength({ max: 5000 }),
+    body('coverLetter').optional({ nullable: true }).isString().trim().isLength({ max: 5000 }),
     validateRequest,
   ],
   applicationController.createApplication
