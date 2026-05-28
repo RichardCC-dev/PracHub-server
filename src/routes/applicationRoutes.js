@@ -64,6 +64,7 @@ router.patch(
     param('applicationId').isInt({ min: 1 }),
     body('status').isIn(['enviada', 'revision', 'descartada', 'aceptada']),
     body('notes').optional().isString().trim().isLength({ max: 1000 }),
+    body('internalNotes').optional().isString().trim().isLength({ max: 2000 }),
     validateRequest,
   ],
   applicationController.updateApplicationStatus

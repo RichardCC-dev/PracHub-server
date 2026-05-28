@@ -8,6 +8,7 @@ const Resume = require('./Resume');
 const ResumeVersion = require('./ResumeVersion');
 const Offer = require('./Offer');
 const Application = require('./Application');
+const Notification = require('./Notification');
 
 [
   { name: 'User', model: User },
@@ -18,7 +19,8 @@ const Application = require('./Application');
   { name: 'Resume', model: Resume },
   { name: 'ResumeVersion', model: ResumeVersion },
   { name: 'Offer', model: Offer },
-  { name: 'Application', model: Application }
+  { name: 'Application', model: Application },
+  { name: 'Notification', model: Notification }
 ].forEach(item => {
   if (!item.model || !item.model.prototype || !item.model.prototype.constructor.name) {
     throw new Error(`¡El modelo ${item.name} no se cargó correctamente! Revisa el archivo ${item.name}.js`);
@@ -147,6 +149,18 @@ Application.belongsTo(Resume, {
   as: 'resume',
 });
 
+// Relaciones de Notification
+User.hasMany(Notification, {
+  foreignKey: 'userId',
+  as: 'notifications',
+  onDelete: 'CASCADE',
+});
+
+Notification.belongsTo(User, {
+  foreignKey: 'userId',
+  as: 'user',
+});
+
 module.exports = {
   sequelize,
   User,
@@ -158,4 +172,5 @@ module.exports = {
   ResumeVersion,
   Offer,
   Application,
+  Notification,
 };

@@ -250,12 +250,12 @@ const applicationService = {
               attributes: ['email'],
             },
           ],
-          attributes: ['id', 'firstName', 'lastName', 'university', 'career', 'profilePictureUrl'],
+          attributes: ['id', 'firstName', 'lastName', 'university', 'career', 'profilePictureUrl', 'phoneNumber'],
         },
         {
           model: Resume,
           as: 'resume',
-          attributes: ['id', 'completionPercentage'],
+          attributes: ['id', 'completionPercentage', 'profile', 'personal', 'education', 'experience', 'skills', 'languages', 'projects', 'certifications'],
         },
       ],
       order: [['appliedAt', 'DESC']],
@@ -269,12 +269,18 @@ const applicationService = {
    * @param {string} status - Nuevo estado
    * @param {string} notes - Notas opcionales
    */
-  async updateApplicationStatus(applicationId, companyId, status, notes = null) {
+  async updateApplicationStatus(applicationId, companyId, status, notes = null, internalNotes = null) {
+    const notificationService = require('./notificationService');
     const application = await Application.findByPk(applicationId, {
       include: [
         {
           model: Offer,
           as: 'offer',
+        },
+        {
+          model: Student,
+          as: 'student',
+          include: [{ model: User, as: 'user', attributes: ['id'] }],
         },
       ],
     });
@@ -293,14 +299,31 @@ const applicationService = {
     }
 
     application.status = status;
-    if (notes) {
-      application.companyNotes = notes;
+    if (notes !== null && notes !== undefined) {
+      application.companyNotes = notes || null;
+    }
+    if (internalNotes !== null && internalNotes !== undefined) {
+      application.internalNotes = internalNotes || null;
     }
     if (status === 'descartada' || status === 'aceptada') {
       application.companyResponseAt = new Date();
     }
 
     await application.save();
+
+    // Crear notificación para el estudiante si el estado cambió a algo relevante
+    if (['revision', 'aceptada', 'descartada'].includes(status)) {
+      const studentUserId = application.student?.user?.id;
+      if (studentUserId) {
+        await notificationService.createStatusChangeNotification(
+          studentUserId,
+          applicationId,
+          application.offer.title,
+          status,
+          notes
+        );
+      }
+    }
 
     return application;
   },

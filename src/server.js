@@ -7,8 +7,9 @@ const PORT = process.env.PORT || 4000;
 const startServer = async () => {
   try {
     await sequelize.authenticate();
-    // Desactivado alter para evitar 'Too many keys' error
-    // Usar 'npm run sync-db' manualmente cuando se necesiten cambios en BD
+    // Solo crear tablas nuevas que no existan (force:false, alter:false)
+    const { Notification } = require('./models');
+    await Notification.sync({ force: false });
     await sequelize.sync({ alter: false });
 
     app.listen(PORT, () => {
