@@ -7,6 +7,10 @@ const offerController = require('../controllers/offerController');
 
 const router = express.Router();
 
+// GET /api/offers - Obtener todas las ofertas públicas (para estudiantes)
+// Esta ruta es pública y no requiere autenticación de empresa
+router.get('/', offerController.getAllOffers);
+
 const offerValidation = [
   body('title')
     .trim()
@@ -53,18 +57,18 @@ const offerValidation = [
     .isISO8601().withMessage('La fecha de expiración debe ser una fecha válida.'),
 ];
 
-// Todas las rutas requieren auth y rol company
+// Todas las rutas debajo requieren auth y rol company
 router.use(authenticate);
 router.use(authorize('company'));
 
-// GET /api/offers/my - Mis ofertas
+// GET /api/offers/my - Mis ofertas (DEBE ir antes de /:offerId)
 router.get('/my', offerController.getMyOffers);
-
-// GET /api/offers/:offerId - Ver oferta por ID
-router.get('/:offerId', param('offerId').isInt(), validateRequest, offerController.getOfferById);
 
 // POST /api/offers - Crear oferta
 router.post('/', offerValidation, validateRequest, offerController.createOffer);
+
+// GET /api/offers/:offerId - Ver oferta por ID (requiere auth para empresas)
+router.get('/:offerId', param('offerId').isInt(), validateRequest, offerController.getOfferById);
 
 // PUT /api/offers/:offerId - Editar oferta
 router.put('/:offerId', offerValidation, validateRequest, offerController.updateOffer);

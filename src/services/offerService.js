@@ -34,7 +34,7 @@ const createOffer = async (companyId, data) => {
 const getCompanyOffers = async (companyId) => {
   const offers = await Offer.findAll({
     where: { companyId },
-    order: [['created_at', 'DESC']],
+    order: [['id', 'DESC']],
   });
   return offers;
 };
@@ -103,10 +103,44 @@ const closeOffer = async (offerId, companyId) => {
   return offer;
 };
 
+/**
+ * Obtener todas las ofertas públicas (para estudiantes)
+ * @param {object} filters - Filtros opcionales
+ */
+const getAllOffers = async (filters = {}) => {
+  const { Op } = require('sequelize');
+  const where = {
+    status: 'approved',
+  };
+
+  // Filtro por modalidad
+  if (filters.modality) {
+    where.modality = filters.modality;
+  }
+
+  // Filtro por búsqueda de texto
+  if (filters.search) {
+    where.title = { [Op.like]: `%${filters.search}%` };
+  }
+
+  return await Offer.findAll({
+    where,
+    include: [
+      {
+        model: Company,
+        as: 'company',
+        attributes: ['id', 'legalName', 'tradeName', 'logoUrl'],
+      },
+    ],
+    order: [['id', 'DESC']],
+  });
+};
+
 module.exports = {
   createOffer,
   getCompanyOffers,
   getOfferById,
   updateOffer,
   closeOffer,
+  getAllOffers,
 };

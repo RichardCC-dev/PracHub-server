@@ -92,10 +92,34 @@ const closeOffer = async (req, res, next) => {
   }
 };
 
+/**
+ * GET /api/offers
+ * Obtener todas las ofertas públicas (para estudiantes)
+ */
+const getAllOffers = async (req, res, next) => {
+  try {
+    const filters = {
+      status: 'approved',
+      modality: req.query.modality,
+      search: req.query.search,
+    };
+
+    const offers = await offerService.getAllOffers(filters);
+
+    res.status(200).json({
+      success: true,
+      data: { offers },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   createOffer,
   getMyOffers,
   getOfferById,
   updateOffer,
   closeOffer,
+  getAllOffers,
 };

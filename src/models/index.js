@@ -7,6 +7,7 @@ const EmailVerificationToken = require('./EmailVerificationToken');
 const Resume = require('./Resume');
 const ResumeVersion = require('./ResumeVersion');
 const Offer = require('./Offer');
+const Application = require('./Application');
 
 [
   { name: 'User', model: User },
@@ -16,7 +17,8 @@ const Offer = require('./Offer');
   { name: 'EmailVerificationToken', model: EmailVerificationToken },
   { name: 'Resume', model: Resume },
   { name: 'ResumeVersion', model: ResumeVersion },
-  { name: 'Offer', model: Offer }
+  { name: 'Offer', model: Offer },
+  { name: 'Application', model: Application }
 ].forEach(item => {
   if (!item.model || !item.model.prototype || !item.model.prototype.constructor.name) {
     throw new Error(`¡El modelo ${item.name} no se cargó correctamente! Revisa el archivo ${item.name}.js`);
@@ -111,6 +113,40 @@ Offer.belongsTo(User, {
   as: 'moderator',
 });
 
+// Relaciones de Application
+Student.hasMany(Application, {
+  foreignKey: 'studentId',
+  as: 'applications',
+  onDelete: 'CASCADE',
+});
+
+Application.belongsTo(Student, {
+  foreignKey: 'studentId',
+  as: 'student',
+});
+
+Offer.hasMany(Application, {
+  foreignKey: 'offerId',
+  as: 'applications',
+  onDelete: 'CASCADE',
+});
+
+Application.belongsTo(Offer, {
+  foreignKey: 'offerId',
+  as: 'offer',
+});
+
+Resume.hasMany(Application, {
+  foreignKey: 'resumeId',
+  as: 'applications',
+  onDelete: 'CASCADE',
+});
+
+Application.belongsTo(Resume, {
+  foreignKey: 'resumeId',
+  as: 'resume',
+});
+
 module.exports = {
   sequelize,
   User,
@@ -121,4 +157,5 @@ module.exports = {
   Resume,
   ResumeVersion,
   Offer,
+  Application,
 };

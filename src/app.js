@@ -1,3 +1,5 @@
+require('dotenv').config();
+
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
@@ -8,6 +10,7 @@ const uploadRoutes = require('./routes/uploadRoutes');
 const resumeRoutes = require('./routes/resumeRoutes');
 const adminRoutes = require('./routes/adminRoutes');
 const offerRoutes = require('./routes/offerRoutes');
+const applicationRoutes = require('./routes/applicationRoutes');
 const errorHandler = require('./middlewares/errorHandler');
 
 const app = express();
@@ -40,6 +43,7 @@ app.use('/api/upload', uploadRoutes);
 app.use('/api/resume', resumeRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/offers', offerRoutes);
+app.use('/api/applications', applicationRoutes);
 app.use(errorHandler);
 
 module.exports = app;
