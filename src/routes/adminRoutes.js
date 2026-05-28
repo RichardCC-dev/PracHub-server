@@ -11,6 +11,18 @@ const router = express.Router();
 router.use(authenticate);
 router.use(authorizeAdmin);
 
+// GET /api/admin/companies - Listar empresas
+router.get('/companies', adminController.getCompanies);
+
+// POST /api/admin/companies/:companyId/enable - Habilitar publicación
+router.post('/companies/:companyId/enable', adminController.enableCompanyPublishing);
+
+// POST /api/admin/companies/:companyId/disable - Deshabilitar publicación
+router.post('/companies/:companyId/disable', adminController.disableCompanyPublishing);
+
+// GET /api/admin/offers/status/:status - Listar ofertas por estado
+router.get('/offers/status/:status', adminController.getOffersByStatus);
+
 // GET /api/admin/offers/pending - Listar ofertas pendientes
 router.get('/offers/pending', adminController.getPendingOffers);
 

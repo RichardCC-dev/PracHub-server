@@ -247,6 +247,37 @@ const sendOfferRejectedNotification = async ({ to, offerTitle, offerId, rejectio
   return info;
 };
 
+const sendCompanyPublishingEnabledNotification = async ({ to, companyName }) => {
+  const transporter = await getTransporter();
+  const appUrl = process.env.APP_URL || process.env.CLIENT_URL || 'http://localhost:5173';
+
+  const info = await transporter.sendMail({
+    from: process.env.SMTP_FROM || '"PracHub" <noreply@prachub.pe>',
+    to,
+    subject: '¡Tu empresa ahora puede publicar ofertas! - PracHub',
+    text: `Felicidades ${companyName}, tu empresa ha sido verificada y ahora puede publicar ofertas de prácticas en PracHub.`,
+    html: emailBase(`
+      <h2 style="color:#059669;margin-top:0;">¡Tu empresa está verificada!</h2>
+      <p>Hola <strong>${companyName}</strong>,</p>
+      <p>Nos complace informarte que tu empresa ha sido verificada y <strong>ahora puede publicar ofertas de prácticas profesionales</strong> en PracHub.</p>
+      <div style="background:#ecfdf5;border:1px solid #a7f3d0;padding:16px;border-radius:8px;margin:16px 0;">
+        <p style="margin:0;color:#065f46;font-weight:600;">¿Qué puedes hacer ahora?</p>
+        <ul style="margin:8px 0 0 0;color:#047857;padding-left:20px;">
+          <li>Crear y gestionar ofertas de prácticas</li>
+          <li>Recibir postulaciones de estudiantes calificados</li>
+          <li>Administrar el proceso de selección</li>
+        </ul>
+      </div>
+      <a href="${appUrl}/company/offers" style="display:inline-block;background:#065f46;color:#fff;padding:12px 24px;border-radius:12px;text-decoration:none;font-weight:700;margin-top:8px;">
+        Crear mi primera oferta
+      </a>
+    `),
+  });
+
+  logPreview(info);
+  return info;
+};
+
 module.exports = {
   sendEmailVerificationEmail,
   sendWelcomeEmail,
@@ -256,4 +287,5 @@ module.exports = {
   sendCompanyWelcomeEmail,
   sendOfferApprovedNotification,
   sendOfferRejectedNotification,
+  sendCompanyPublishingEnabledNotification,
 };
