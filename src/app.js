@@ -12,6 +12,7 @@ const adminRoutes = require('./routes/adminRoutes');
 const offerRoutes = require('./routes/offerRoutes');
 const applicationRoutes = require('./routes/applicationRoutes');
 const simulationRoutes = require('./routes/simulationRoutes');
+const notificationRoutes = require('./routes/notificationRoutes');
 const errorHandler = require('./middlewares/errorHandler');
 
 const app = express();
@@ -46,6 +47,7 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/offers', offerRoutes);
 app.use('/api/applications', applicationRoutes);
 app.use('/api/simulations', simulationRoutes);
+app.use('/api/notifications', notificationRoutes);
 app.use(errorHandler);
 
 module.exports = app;

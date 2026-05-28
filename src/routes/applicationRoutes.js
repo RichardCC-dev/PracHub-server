@@ -15,7 +15,7 @@ router.post(
   [
     body('offerId').isInt({ min: 1 }),
     body('resumeId').isInt({ min: 1 }),
-    body('coverLetter').optional().isString().trim().isLength({ max: 5000 }),
+    body('coverLetter').optional({ nullable: true }).isString().trim().isLength({ max: 5000 }),
     validateRequest,
   ],
   applicationController.createApplication
@@ -64,6 +64,7 @@ router.patch(
     param('applicationId').isInt({ min: 1 }),
     body('status').isIn(['enviada', 'revision', 'descartada', 'aceptada']),
     body('notes').optional().isString().trim().isLength({ max: 1000 }),
+    body('internalNotes').optional().isString().trim().isLength({ max: 2000 }),
     validateRequest,
   ],
   applicationController.updateApplicationStatus

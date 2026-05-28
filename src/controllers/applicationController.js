@@ -63,7 +63,7 @@ const applicationController = {
     try {
       const companyId = req.user.companyProfile?.id;
       if (!companyId) return res.status(403).json({ success: false, message: 'Solo empresas' });
-      const updated = await applicationService.updateApplicationStatus(req.params.applicationId, companyId, req.body.status, req.body.notes);
+      const updated = await applicationService.updateApplicationStatus(req.params.applicationId, companyId, req.body.status, req.body.notes, req.body.internalNotes);
       res.json({ success: true, data: updated });
     } catch (error) {
       next(error);

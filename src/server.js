@@ -7,7 +7,10 @@ const PORT = process.env.PORT || 4000;
 const startServer = async () => {
   try {
     await sequelize.authenticate();
-    await sequelize.sync({ alter: process.env.NODE_ENV === 'development' });
+    // Solo crear tablas nuevas que no existan (force:false, alter:false)
+    const { Notification } = require('./models');
+    await Notification.sync({ force: false });
+    await sequelize.sync({ alter: false });
 
     app.listen(PORT, () => {
       console.log(`PracHub API listening on port ${PORT}`);

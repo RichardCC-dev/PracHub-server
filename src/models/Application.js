@@ -62,6 +62,11 @@ const Application = sequelize.define(
       allowNull: true,
       field: 'company_notes',
     },
+    internalNotes: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+      field: 'internal_notes',
+    },
   },
   {
     tableName: 'applications',
