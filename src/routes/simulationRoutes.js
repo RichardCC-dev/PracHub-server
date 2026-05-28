@@ -3,6 +3,7 @@ const router = express.Router();
 const { check } = require('express-validator');
 const simulationController = require('../controllers/simulationController');
 const authMiddleware = require('../middlewares/authMiddleware');
+const validateRequest = require('../middlewares/validateRequest');
 
 // Validaciones
 const startValidation = [
@@ -17,7 +18,7 @@ const messageValidation = [
 router.use(authMiddleware);
 
 // Iniciar nueva simulación
-router.post('/start', startValidation, simulationController.startSimulation);
+router.post('/start', startValidation, validateRequest, simulationController.startSimulation);
 
 // Obtener historial de simulaciones
 router.get('/history', simulationController.getSimulationsHistory);
