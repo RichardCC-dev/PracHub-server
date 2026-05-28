@@ -152,7 +152,7 @@ exports.getSimulationsHistory = async (req, res) => {
     const simulations = await Simulation.findAll({
       where: { studentId: student.id },
       order: [['createdAt', 'DESC']],
-      attributes: ['id', 'simulatedRole', 'overallScore', 'status', 'createdAt', 'updatedAt']
+      attributes: ['id', 'simulatedRole', 'overallScore', 'aiFeedbackSummary', 'status', 'createdAt', 'updatedAt']
     });
 
     res.json({ simulations });
