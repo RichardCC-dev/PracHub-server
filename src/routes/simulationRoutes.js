@@ -22,6 +22,9 @@ router.post('/start', startValidation, simulationController.startSimulation);
 // Obtener historial de simulaciones
 router.get('/history', simulationController.getSimulationsHistory);
 
+// Obtener estadísticas de progreso (HU-09)
+router.get('/stats', simulationController.getSimulationStats);
+
 // Obtener detalle de una simulación
 router.get('/:id', simulationController.getSimulationDetails);
 

@@ -162,6 +162,99 @@ exports.getSimulationsHistory = async (req, res) => {
   }
 };
 
+exports.getSimulationStats = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const student = await Student.findOne({ where: { userId } });
+
+    if (!student) {
+      return res.status(404).json({ error: 'Perfil de estudiante no encontrado' });
+    }
+
+    const { Sequelize } = require('sequelize');
+
+    const completedSims = await Simulation.findAll({
+      where: { studentId: student.id, status: 'completed' },
+      order: [['createdAt', 'ASC']],
+      attributes: ['id', 'simulatedRole', 'sector', 'overallScore', 'createdAt'],
+    });
+
+    const totalSessions = await Simulation.count({ where: { studentId: student.id } });
+    const completedCount = completedSims.length;
+
+    if (completedCount === 0) {
+      return res.json({
+        stats: {
+          totalSessions,
+          completedSessions: 0,
+          averageScore: null,
+          highestScore: null,
+          lowestScore: null,
+          trend: [],
+          roleBreakdown: [],
+          bestRole: null,
+          worstRole: null,
+        }
+      });
+    }
+
+    const scores = completedSims.map(s => s.overallScore).filter(s => s != null);
+    const averageScore = scores.length > 0
+      ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length)
+      : null;
+    const highestScore = scores.length > 0 ? Math.max(...scores) : null;
+    const lowestScore = scores.length > 0 ? Math.min(...scores) : null;
+
+    // Tendencia: últimas 8 sesiones completadas
+    const trendSims = completedSims.slice(-8);
+    const trend = trendSims.map(s => ({
+      id: s.id,
+      role: s.simulatedRole,
+      score: s.overallScore,
+      date: s.createdAt,
+    }));
+
+    // Desglose por rol
+    const roleMap = {};
+    completedSims.forEach(s => {
+      const key = s.simulatedRole;
+      if (!roleMap[key]) roleMap[key] = { role: key, scores: [], count: 0 };
+      if (s.overallScore != null) {
+        roleMap[key].scores.push(s.overallScore);
+        roleMap[key].count++;
+      }
+    });
+
+    const roleBreakdown = Object.values(roleMap).map(r => ({
+      role: r.role,
+      sessions: r.count,
+      averageScore: r.scores.length > 0
+        ? Math.round(r.scores.reduce((a, b) => a + b, 0) / r.scores.length)
+        : null,
+    })).sort((a, b) => (b.averageScore ?? 0) - (a.averageScore ?? 0));
+
+    const bestRole = roleBreakdown[0] || null;
+    const worstRole = roleBreakdown.length > 1 ? roleBreakdown[roleBreakdown.length - 1] : null;
+
+    res.json({
+      stats: {
+        totalSessions,
+        completedSessions: completedCount,
+        averageScore,
+        highestScore,
+        lowestScore,
+        trend,
+        roleBreakdown,
+        bestRole,
+        worstRole,
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching simulation stats:', error);
+    res.status(500).json({ error: 'Error al obtener estadísticas de progreso' });
+  }
+};
+
 exports.getSimulationDetails = async (req, res) => {
   try {
     const { id } = req.params;
