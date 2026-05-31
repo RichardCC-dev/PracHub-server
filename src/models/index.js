@@ -8,9 +8,11 @@ const Resume = require('./Resume');
 const ResumeVersion = require('./ResumeVersion');
 const Offer = require('./Offer');
 const Application = require('./Application');
+const Simulation = require('./Simulation');
 const Notification = require('./Notification');
 const CVAnalysis = require('./CVAnalysis');
 
+// Validación de carga de todos los modelos (10 en total)
 [
   { name: 'User', model: User },
   { name: 'Student', model: Student },
@@ -22,13 +24,19 @@ const CVAnalysis = require('./CVAnalysis');
   { name: 'Offer', model: Offer },
   { name: 'Application', model: Application },
   { name: 'Notification', model: Notification },
-  { name: 'CVAnalysis', model: CVAnalysis }
+  { name: 'CVAnalysis', model: CVAnalysis },
+  { name: 'Simulation', model: Simulation }
 ].forEach(item => {
   if (!item.model || !item.model.prototype || !item.model.prototype.constructor.name) {
     throw new Error(`¡El modelo ${item.name} no se cargó correctamente! Revisa el archivo ${item.name}.js`);
   }
 });
 
+// ==========================================
+// Relaciones de Usuarios, Perfiles y Tokens
+// ==========================================
+
+// --- Relaciones de User ---
 User.hasOne(Student, {
   foreignKey: 'userId',
   as: 'studentProfile',
@@ -73,6 +81,11 @@ EmailVerificationToken.belongsTo(User, {
   as: 'user',
 });
 
+// ==========================================
+// Relaciones del Estudiante (CVs y Simulaciones)
+// ==========================================
+
+// --- Relaciones de Student ---
 Student.hasOne(Resume, {
   foreignKey: 'studentId',
   as: 'resume',
@@ -95,7 +108,23 @@ ResumeVersion.belongsTo(Student, {
   as: 'student',
 });
 
-// Relaciones de Offer
+// Nueva característica: Simulación de entrevistas con IA
+Student.hasMany(Simulation, {
+  foreignKey: 'studentId',
+  as: 'simulations',
+  onDelete: 'CASCADE',
+});
+
+Simulation.belongsTo(Student, {
+  foreignKey: 'studentId',
+  as: 'student',
+});
+
+// ==========================================
+// Relaciones de Ofertas Laborales (Offer)
+// ==========================================
+
+// --- Relaciones de Offer ---
 Company.hasMany(Offer, {
   foreignKey: 'companyId',
   as: 'offers',
@@ -117,7 +146,10 @@ Offer.belongsTo(User, {
   as: 'moderator',
 });
 
-// Relaciones de Application
+// ==========================================
+// Relaciones de Postulaciones (Application)
+// ==========================================
+
 Student.hasMany(Application, {
   foreignKey: 'studentId',
   as: 'applications',
@@ -208,6 +240,7 @@ module.exports = {
   ResumeVersion,
   Offer,
   Application,
+  Simulation,
   Notification,
   CVAnalysis,
 };
