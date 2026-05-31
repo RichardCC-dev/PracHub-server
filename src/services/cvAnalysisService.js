@@ -30,7 +30,12 @@ const formatResumeForAnalysis = (resume) => {
 
   if (resume.education?.items?.length > 0) {
     const eduText = resume.education.items
-      .map((item, i) => `  ${i + 1}. ${item.degree || ''} en ${item.institution || ''} (${item.year || ''})`)
+      .map((item, i) => {
+        const period = item.startDate || item.endDate
+          ? `${item.startDate || ''} - ${item.endDate || 'Actual'}`
+          : (item.year || '');
+        return `  ${i + 1}. ${item.degree || ''} en ${item.institution || ''} (${period})`;
+      })
       .join('\n');
     sections.push(`FORMACIÓN ACADÉMICA:\n${eduText}`);
   }
@@ -47,7 +52,12 @@ const formatResumeForAnalysis = (resume) => {
 
   if (resume.projects?.items?.length > 0) {
     const projText = resume.projects.items
-      .map((item, i) => `  ${i + 1}. ${item.title || ''}: ${item.description || ''}`)
+      .map((item, i) => {
+        const bullets = Array.isArray(item.bullets) ? item.bullets.filter(Boolean).join('\n     • ') : '';
+        const desc = item.description || '';
+        const content = bullets || desc || 'Sin descripción';
+        return `  ${i + 1}. ${item.title || 'Sin título'}\n     ${content}`;
+      })
       .join('\n\n');
     sections.push(`PROYECTOS:\n${projText}`);
   }
@@ -64,7 +74,7 @@ const formatResumeForAnalysis = (resume) => {
 
   if (resume.certifications?.items?.length > 0) {
     const certText = resume.certifications.items
-      .map((item, i) => `  ${i + 1}. ${item.name || ''} - ${item.issuer || ''} (${item.year || ''})`)
+      .map((item, i) => `  ${i + 1}. ${item.name || ''} - ${item.issuer || ''} (${item.date || ''})`)
       .join('\n');
     sections.push(`CERTIFICACIONES:\n${certText}`);
   }
@@ -212,7 +222,7 @@ const getAnalysisHistory = async (studentId, limit = 20) => {
           company: analysis.offer.company,
         }
       : null,
-    createdAt: analysis.createdAt,
+    createdAt: analysis.created_at,
     summary: analysis.observations?.slice(0, 3) || [],
   }));
 };
@@ -249,7 +259,7 @@ const getAnalysisById = async (analysisId, studentId) => {
           company: analysis.offer.company,
         }
       : null,
-    createdAt: analysis.createdAt,
+    createdAt: analysis.created_at,
   };
 };
 
