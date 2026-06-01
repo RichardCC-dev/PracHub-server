@@ -181,6 +181,17 @@ Application.belongsTo(Resume, {
   as: 'resume',
 });
 
+ResumeVersion.hasMany(Application, {
+  foreignKey: 'resumeVersionId',
+  as: 'applications',
+  onDelete: 'SET NULL',
+});
+
+Application.belongsTo(ResumeVersion, {
+  foreignKey: 'resumeVersionId',
+  as: 'resumeVersion',
+});
+
 // Relaciones de Notification
 User.hasMany(Notification, {
   foreignKey: 'userId',
