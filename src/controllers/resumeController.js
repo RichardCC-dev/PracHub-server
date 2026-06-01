@@ -1,5 +1,6 @@
 const resumeService = require('../services/resumeService');
-const resumePdfService = require('../services/resumePdfService');
+// CORRECCIÓN: Asignamos un alias (exportVersionPdfService) a la función importada
+const { exportResumePdf, exportVersionPdf: exportVersionPdfService } = require('../services/resumePdfService');
 const resumeVersionService = require('../services/resumeVersionService');
 
 const getResume = async (req, res, next) => {
@@ -49,7 +50,25 @@ const exportPdf = async (req, res, next) => {
   try {
     const studentId = req.user.studentProfile.id;
     const { template } = req.body;
-    const { buffer, filename } = await resumePdfService.exportResumePdf(studentId, template);
+    const { buffer, filename } = await exportResumePdf(studentId, template);
+
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    res.setHeader('Cache-Control', 'no-store');
+    return res.status(200).send(buffer);
+  } catch (error) {
+    return next(error);
+  }
+};
+
+const exportVersionPdf = async (req, res, next) => {
+  try {
+    const studentId = req.user.studentProfile.id;
+    const { versionId } = req.params;
+    const { template = 'harvard' } = req.query;
+    
+    // CORRECCIÓN: Usamos el alias aquí para llamar al servicio
+    const { buffer, filename } = await exportVersionPdfService(versionId, studentId, template);
 
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
@@ -102,6 +121,7 @@ module.exports = {
   improveField,
   improveFullSection,
   exportPdf,
+  exportVersionPdf,
   getVersions,
   restoreVersion,
   deleteVersion,

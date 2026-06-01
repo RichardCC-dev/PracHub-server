@@ -1,6 +1,6 @@
 const puppeteer = require('puppeteer');
 const { getResume } = require('./resumeService');
-const { createVersion } = require('./resumeVersionService');
+const { createVersion, getVersionById } = require('./resumeVersionService');
 
 const ALLOWED_TEMPLATES = ['harvard', 'investment-banking'];
 
@@ -191,7 +191,51 @@ const exportResumePdf = async (studentId, template) => {
   }
 };
 
+/**
+ * Generar PDF desde una versión específica del CV
+ * @param {number} versionId - ID de la versión del CV
+ * @param {number} studentId - ID del estudiante (para verificación de propiedad)
+ * @param {string} template - Plantilla a usar (harvard o investment-banking)
+ */
+const exportVersionPdf = async (versionId, studentId, template) => {
+  if (!ALLOWED_TEMPLATES.includes(template)) {
+    const error = new Error('Plantilla de CV no permitida.');
+    error.statusCode = 400;
+    throw error;
+  }
+
+  const version = await getVersionById(versionId, studentId);
+
+  // Convertir versión a formato de resume para reutilizar renderResumeHtml
+  const resume = {
+    personal: version.personal || {},
+    profile: version.profile || {},
+    education: version.education || { items: [] },
+    experience: version.experience || { items: [] },
+    projects: version.projects || { items: [] },
+    certifications: version.certifications || { items: [] },
+    skills: version.skills || { areas: [], soft: '', technical: '' },
+    languages: version.languages || { list: '' },
+  };
+
+  const html = renderResumeHtml(resume, template);
+  const browser = await puppeteer.launch({ headless: 'new', args: ['--no-sandbox', '--disable-setuid-sandbox'] });
+
+  try {
+    const page = await browser.newPage();
+    await page.setContent(html, { waitUntil: 'networkidle0' });
+    const pdfData = await page.pdf({ format: 'A4', printBackground: true, preferCSSPageSize: true });
+    const buffer = Buffer.isBuffer(pdfData) ? pdfData : Buffer.from(pdfData);
+    const filename = `${normalizeFilePart(resume.personal?.fullName)}-v${versionId}-${template}-${formatDateForFile()}.pdf`;
+
+    return { buffer, filename };
+  } finally {
+    await browser.close();
+  }
+};
+
 module.exports = {
   ALLOWED_TEMPLATES,
   exportResumePdf,
+  exportVersionPdf,
 };
