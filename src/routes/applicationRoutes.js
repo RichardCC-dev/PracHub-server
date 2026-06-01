@@ -16,6 +16,7 @@ router.post(
     body('offerId').isInt({ min: 1 }),
     body('resumeId').isInt({ min: 1 }),
     body('coverLetter').optional({ nullable: true }).isString().trim().isLength({ max: 5000 }),
+    body('resumeVersionId').optional({ nullable: true }).isInt({ min: 1 }),
     validateRequest,
   ],
   applicationController.createApplication
@@ -68,6 +69,16 @@ router.patch(
     validateRequest,
   ],
   applicationController.updateApplicationStatus
+);
+
+router.get(
+  '/:applicationId/download-cv',
+  authorize('company'),
+  [
+    param('applicationId').isInt({ min: 1 }),
+    validateRequest,
+  ],
+  applicationController.downloadCV
 );
 
 module.exports = router;
