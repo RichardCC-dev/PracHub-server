@@ -5,12 +5,23 @@ const JSON_FIELDS = ['profile', 'personal', 'education', 'certifications', 'expe
 
 const ensurePlainObject = (value) => {
   if (value === null || value === undefined) return {};
-  if (typeof value === 'string') {
-    try { return JSON.parse(value); } catch { return {}; }
+  
+  let parsed = value;
+  let iterations = 0;
+  
+  while (typeof parsed === 'string' && iterations < 3) {
+    try {
+      parsed = JSON.parse(parsed);
+    } catch {
+      break;
+    }
+    iterations++;
   }
-  if (typeof value === 'object' && !Array.isArray(value)) {
-    return JSON.parse(JSON.stringify(value));
+
+  if (typeof parsed === 'object' && parsed !== null && !Array.isArray(parsed)) {
+    return JSON.parse(JSON.stringify(parsed)); // Deep clone
   }
+  
   return {};
 };
 

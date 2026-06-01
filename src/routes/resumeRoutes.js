@@ -39,6 +39,7 @@ router.post('/improve/:section/:field', resumeController.improveField);
 router.post('/improve-section/:section', resumeController.improveFullSection);
 
 router.get('/versions', resumeController.getVersions);
+router.get('/versions/:versionId/pdf', resumeController.exportVersionPdf);
 router.post('/versions/:versionId/restore', resumeController.restoreVersion);
 router.delete('/versions/:versionId', resumeController.deleteVersion);
 

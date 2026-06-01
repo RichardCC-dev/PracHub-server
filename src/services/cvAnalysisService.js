@@ -96,7 +96,7 @@ Carreras afines: ${offer.careerTags ? JSON.stringify(offer.careerTags) : 'No esp
 };
 
 const analyzeCVWithAI = async (resume, offer = null, company = null) => {
-  const model = genAI.getGenerativeModel({ model: 'gemini-flash-latest' });
+  const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash-lite' });
 
   const resumeText = formatResumeForAnalysis(resume);
   const offerContext = formatOfferForContext(offer, company);

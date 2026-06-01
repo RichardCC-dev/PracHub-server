@@ -7,8 +7,8 @@ const applicationController = {
       if (!studentId) {
         return res.status(403).json({ success: false, message: 'Solo estudiantes' });
       }
-      const { offerId, resumeId, coverLetter } = req.body;
-      const application = await applicationService.createApplication(studentId, offerId, resumeId, coverLetter);
+      const { offerId, resumeId, coverLetter, resumeVersionId } = req.body;
+      const application = await applicationService.createApplication(studentId, offerId, resumeId, coverLetter, resumeVersionId);
       res.status(201).json({ success: true, data: application });
     } catch (error) {
       next(error);
@@ -65,6 +65,22 @@ const applicationController = {
       if (!companyId) return res.status(403).json({ success: false, message: 'Solo empresas' });
       const updated = await applicationService.updateApplicationStatus(req.params.applicationId, companyId, req.body.status, req.body.notes, req.body.internalNotes);
       res.json({ success: true, data: updated });
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  async downloadCV(req, res, next) {
+    try {
+      const companyId = req.user.companyProfile?.id;
+      if (!companyId) return res.status(403).json({ success: false, message: 'Solo empresas' });
+      const { template = 'harvard' } = req.query;
+      const { buffer, filename } = await applicationService.downloadApplicationCV(req.params.applicationId, companyId, template);
+
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+      res.setHeader('Cache-Control', 'no-store');
+      return res.status(200).send(buffer);
     } catch (error) {
       next(error);
     }

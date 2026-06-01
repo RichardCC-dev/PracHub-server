@@ -6,7 +6,11 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 const getSystemPrompt = (role, career, sector) => {
   const contextInfo = career ? `El candidato estudia ${career}` : 'El candidato es universitario';
   const sectorInfo = sector ? ` y quiere trabajar en el sector de ${sector}` : '';
-  return `Eres un reclutador senior llamado "Marco" de una empresa reconocida tienes que especificar la empresa y el empleo que ofreces. Estás entrevistando a un candidato para prácticas profesionales en el área de ${role}. ${contextInfo}${sectorInfo}.
+  return `Eres un reclutador senior llamado "Marco" de una empresa real y reconocida (ej. Google, BCP, Microsoft, etc.) del sector seleccionado o afín.
+
+ESTO ES MUY IMPORTANTE: Cuando menciones el nombre de tu empresa, DEBES ponerlo como un enlace Markdown hipervinculado a su sitio web oficial, por ejemplo: [Google](https://www.google.com) o [Banco de Crédito del Perú](https://www.viabcp.com). Asegúrate de hacer esto al menos en tu presentación inicial.
+
+Estás entrevistando a un candidato para prácticas profesionales en el área de ${role}. ${contextInfo}${sectorInfo}.
 
 TU AGENDA DE ENTREVISTA (sigue este orden, avanza al siguiente bloque después de 1-2 respuestas por tema):
 1. Presentación y motivación: por qué le interesa el rol y la empresa.
@@ -19,7 +23,7 @@ TU AGENDA DE ENTREVISTA (sigue este orden, avanza al siguiente bloque después d
 REGLAS DE CONVERSACIÓN (MUY IMPORTANTES):
 - Sigue el orden de la agenda. NO te quedes en el mismo tema más de 2 respuestas seguidas.
 - Cuando ya tienes suficiente sobre un tema, di algo como "Entendido, cambiemos de tema." y pasa al siguiente.
-- Habla de forma natural y humana. Nada de listas ni formato markdown en tus respuestas.
+- Habla de forma natural y humana. No uses listas ni formato markdown complejo (SOLO usa Markdown para el enlace de la empresa).
 - Haz UNA sola pregunta a la vez, corta y directa (máximo 2 oraciones).
 - Después de cada respuesta: un comentario breve y honesto (1 oración máximo), luego la siguiente pregunta.
 - Si la respuesta es muy vaga, pide un ejemplo: "¿Puedes darme un caso concreto?"
@@ -162,12 +166,23 @@ ${formattedHistory}
 Genera un resumen crítico del desempeño del candidato en formato JSON estricto con la siguiente estructura:
 {
   "overallScore": <número del 0 al 100>,
-  "feedbackSummary": "<texto con retroalimentación general detallada>"
+  "feedbackSummary": {
+    "general": "<texto con retroalimentación general detallada. Un párrafo de 3 a 4 oraciones precisas destacando puntos fuertes y áreas de mejora.>",
+    "detailed": [
+      {
+        "question": "<la pregunta hecha por el entrevistador>",
+        "answer": "<resumen de la respuesta del candidato>",
+        "score": <número del 0 al 100>,
+        "feedback": "<por qué obtuvo ese score, analizando uso de método STAR, claridad y relevancia>"
+      }
+    ]
+  }
 }
 
 Reglas estrictas de evaluación:
-- Sé riguroso. Penaliza respuestas genéricas, falta del método STAR y falta de impacto real. Un candidato promedio debe rondar los 60-70 puntos. Solo un talento excepcional obtiene más de 85.
-- El "feedbackSummary" debe ser un solo párrafo de 3 a 4 oraciones precisas destacando los puntos fuertes demostrados y, de manera crítica, sus áreas débiles o falta de profundidad. No uses listas, usa un párrafo directo y profesional. Ademas de si sus repuestas les falta mas capacidad de comunicacion o no va al punto.`;
+- Sé riguroso. Penaliza respuestas genéricas, falta del método STAR y falta de impacto real. Un candidato promedio debe rondar los 60-70 puntos.
+- Evalúa CADA turno de pregunta-respuesta y añádelo al arreglo "detailed".
+- El overallScore debe ser un promedio ponderado o reflejar la evaluación general.`;
 
   // Reintento con backoff si hay 429
   const tryGenerate = async (retries = 2, delayMs = 20000) => {
@@ -175,7 +190,12 @@ Reglas estrictas de evaluación:
       const result = await model.generateContent(prompt);
       let text = result.response.text();
       text = text.replace(/```json/g, '').replace(/```/g, '').trim();
-      return JSON.parse(text);
+      const parsed = JSON.parse(text);
+      // Serializamos feedbackSummary como string para guardarlo en la columna TEXT de la BD
+      return {
+        overallScore: parsed.overallScore,
+        feedbackSummary: JSON.stringify(parsed.feedbackSummary)
+      };
     } catch (err) {
       if (err.status === 429 && retries > 0) {
         console.warn(`Gemini 429 en summary - reintentando en ${delayMs / 1000}s...`);

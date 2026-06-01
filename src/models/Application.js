@@ -36,6 +36,15 @@ const Application = sequelize.define(
         key: 'id',
       },
     },
+    resumeVersionId: {
+      type: DataTypes.INTEGER.UNSIGNED,
+      allowNull: true,
+      field: 'resume_version_id',
+      references: {
+        model: 'ResumeVersions',
+        key: 'id',
+      },
+    },
     coverLetter: {
       type: DataTypes.TEXT,
       allowNull: true,

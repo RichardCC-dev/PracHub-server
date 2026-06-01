@@ -1,6 +1,39 @@
 const { Application, Student, Offer, Company, Resume, User } = require('../models');
 const { Op } = require('sequelize');
 
+// Campos JSON del CV que necesitan ser parseados
+const JSON_FIELDS = ['profile', 'personal', 'education', 'certifications', 'experience', 'skills', 'languages', 'projects'];
+
+const ensurePlainObject = (value) => {
+  if (value === null || value === undefined) return {};
+
+  let parsed = value;
+  let iterations = 0;
+
+  while (typeof parsed === 'string' && iterations < 3) {
+    try {
+      parsed = JSON.parse(parsed);
+    } catch {
+      break;
+    }
+    iterations++;
+  }
+
+  if (typeof parsed === 'object' && parsed !== null && !Array.isArray(parsed)) {
+    return JSON.parse(JSON.stringify(parsed)); // Deep clone
+  }
+
+  return {};
+};
+
+const parsePlainResume = (raw) => {
+  const result = { ...raw };
+  JSON_FIELDS.forEach(f => {
+    result[f] = ensurePlainObject(raw[f]);
+  });
+  return result;
+};
+
 const applicationService = {
   /**
    * Crear una nueva postulación (One-click apply)
@@ -8,8 +41,9 @@ const applicationService = {
    * @param {number} offerId - ID de la oferta
    * @param {number} resumeId - ID del CV activo
    * @param {string} coverLetter - Carta de presentación (opcional)
+   * @param {number} resumeVersionId - ID de la versión del CV (opcional)
    */
-  async createApplication(studentId, offerId, resumeId, coverLetter = null) {
+  async createApplication(studentId, offerId, resumeId, coverLetter = null, resumeVersionId = null) {
     // Verificar si ya existe una postulación para esta oferta
     const existingApplication = await Application.findOne({
       where: {
@@ -61,11 +95,26 @@ const applicationService = {
       throw new Error('CV no encontrado o no pertenece al estudiante');
     }
 
+    // Si se proporciona una versión específica, verificar que existe y pertenece al estudiante
+    if (resumeVersionId) {
+      const { ResumeVersion } = require('../models');
+      const version = await ResumeVersion.findOne({
+        where: {
+          id: resumeVersionId,
+          studentId,
+        },
+      });
+      if (!version) {
+        throw new Error('Versión de CV no encontrada o no pertenece al estudiante');
+      }
+    }
+
     // Crear la postulación
     const application = await Application.create({
       studentId,
       offerId,
       resumeId,
+      resumeVersionId,
       coverLetter,
       status: 'enviada',
       appliedAt: new Date(),
@@ -237,7 +286,7 @@ const applicationService = {
       throw new Error('Oferta no encontrada o no pertenece a la empresa');
     }
 
-    return await Application.findAll({
+    const applications = await Application.findAll({
       where: { offerId },
       include: [
         {
@@ -259,6 +308,15 @@ const applicationService = {
         },
       ],
       order: [['appliedAt', 'DESC']],
+    });
+
+    // Parsear los campos JSON del resume antes de devolver
+    return applications.map(app => {
+      const plain = app.toJSON ? app.toJSON() : app;
+      if (plain.resume) {
+        plain.resume = parsePlainResume(plain.resume);
+      }
+      return plain;
     });
   },
 
@@ -379,6 +437,57 @@ const applicationService = {
       canApply: true,
       resumeId: activeResume.id,
     };
+  },
+
+  /**
+   * Descargar el CV de una postulación (para empresas)
+   * @param {number} applicationId - ID de la postulación
+   * @param {number} companyId - ID de la empresa (para verificación)
+   * @param {string} template - Plantilla para generar el PDF
+   */
+  async downloadApplicationCV(applicationId, companyId, template = 'harvard') {
+    const { exportVersionPdf } = require('./resumePdfService');
+    const { ResumeVersion } = require('../models');
+
+    // Obtener la postulación con su oferta
+    const application = await Application.findByPk(applicationId, {
+      include: [
+        {
+          model: Offer,
+          as: 'offer',
+        },
+        {
+          model: Student,
+          as: 'student',
+        },
+        {
+          model: ResumeVersion,
+          as: 'resumeVersion',
+        },
+      ],
+    });
+
+    if (!application) {
+      const error = new Error('Postulación no encontrada');
+      error.statusCode = 404;
+      throw error;
+    }
+
+    // Verificar que la oferta pertenece a la empresa
+    if (application.offer.companyId !== companyId) {
+      const error = new Error('No tienes permiso para descargar este CV');
+      error.statusCode = 403;
+      throw error;
+    }
+
+    // Si hay una versión específica guardada, usarla
+    if (application.resumeVersion) {
+      return await exportVersionPdf(application.resumeVersionId, application.studentId, template);
+    }
+
+    // Si no hay versión específica, generar desde el resume actual del estudiante
+    const { exportResumePdf } = require('./resumePdfService');
+    return await exportResumePdf(application.studentId, template);
   },
 };
 
