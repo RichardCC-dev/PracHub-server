@@ -1,10 +1,38 @@
 const authService = require('../services/authService');
+const emailService = require('../services/emailService');
+const { User } = require('../models');
 
 const login = async (req, res, next) => {
   try {
     const result = await authService.login(req.body);
+
+    // Alert on successful admin login
+    if (result.user?.role === 'admin') {
+      try {
+        await emailService.sendAdminLoginAlert({
+          email: result.user.email,
+          ip: req.ip,
+          status: 'Éxito',
+        });
+      } catch (alertErr) {
+        console.error('[AdminLoginAlert] Error enviando alerta:', alertErr.message);
+      }
+    }
+
     return res.status(200).json({ message: 'Inicio de sesión exitoso.', ...result });
   } catch (error) {
+    // Alert on failed admin login where adminSecret was wrong
+    if (error.statusCode === 403 && error.message === 'Clave de acceso de administrador inválida.') {
+      try {
+        await emailService.sendAdminLoginAlert({
+          email: req.body.email,
+          ip: req.ip,
+          status: 'Bloqueado',
+        });
+      } catch (alertErr) {
+        console.error('[AdminLoginAlert] Error enviando alerta:', alertErr.message);
+      }
+    }
     return next(error);
   }
 };

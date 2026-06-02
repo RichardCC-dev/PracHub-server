@@ -154,6 +154,24 @@ const login = async (payload) => {
     throw error;
   }
 
+  // Validate that the user role matches the expected portal role
+  if (payload.role && user.role !== payload.role) {
+    const roleNames = { student: 'estudiante', company: 'empresa', admin: 'administrador' };
+    const expectedRoleName = roleNames[payload.role] || payload.role;
+    const error = new Error(`No se encontró una cuenta de ${expectedRoleName} con estas credenciales.`);
+    error.statusCode = 401;
+    throw error;
+  }
+
+  // Extra verification for admin accounts
+  if (user.role === 'admin') {
+    if (payload.adminSecret !== process.env.ADMIN_ACCESS_SECRET) {
+      const error = new Error('Clave de acceso de administrador inválida.');
+      error.statusCode = 403;
+      throw error;
+    }
+  }
+
   const result = {
     token: signToken(user),
     user: {

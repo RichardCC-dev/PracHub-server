@@ -278,6 +278,34 @@ const sendCompanyPublishingEnabledNotification = async ({ to, companyName }) => 
   return info;
 };
 
+const sendAdminLoginAlert = async ({ email, ip, status, adminEmail }) => {
+  const transporter = await getTransporter();
+  const to = adminEmail || process.env.ADMIN_ALERT_EMAIL || email;
+
+  const info = await transporter.sendMail({
+    from: process.env.SMTP_FROM || '"PracHub" <noreply@prachub.pe>',
+    to,
+    subject: `[PracHub Seguridad] Intento de acceso admin - ${status}`,
+    text: `Se detectó un intento de inicio de sesión administrativo.\nEmail: ${email}\nIP: ${ip}\nEstado: ${status}\nFecha: ${new Date().toISOString()}`,
+    html: emailBase(`
+      <h2 style="color:${status === 'Éxito' ? '#059669' : '#dc2626'};margin-top:0;">Alerta de seguridad - Panel Admin</h2>
+      <p>Se detectó un intento de inicio de sesión administrativo:</p>
+      <div style="background:#f3f4f6;border:1px solid #e5e7eb;padding:16px;border-radius:8px;margin:16px 0;">
+        <p style="margin:4px 0;"><strong>Email:</strong> ${email}</p>
+        <p style="margin:4px 0;"><strong>IP:</strong> ${ip}</p>
+        <p style="margin:4px 0;"><strong>Estado:</strong> <span style="color:${status === 'Éxito' ? '#059669' : '#dc2626'};font-weight:700;">${status}</span></p>
+        <p style="margin:4px 0;"><strong>Fecha:</strong> ${new Date().toLocaleString('es-PE')}</p>
+      </div>
+      ${status === 'Éxito'
+        ? '<p style="color:#059669;">El acceso fue exitoso.</p>'
+        : '<p style="color:#dc2626;">Este intento fue bloqueado. Revisa la actividad si no reconoces este acceso.</p>'}
+    `),
+  });
+
+  logPreview(info);
+  return info;
+};
+
 module.exports = {
   sendEmailVerificationEmail,
   sendWelcomeEmail,
@@ -288,4 +316,5 @@ module.exports = {
   sendOfferApprovedNotification,
   sendOfferRejectedNotification,
   sendCompanyPublishingEnabledNotification,
+  sendAdminLoginAlert,
 };

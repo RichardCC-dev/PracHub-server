@@ -2,6 +2,7 @@ const express = require('express');
 const { body } = require('express-validator');
 const authController = require('../controllers/authController');
 const validateRequest = require('../middlewares/validateRequest');
+const { adminLoginLimiter } = require('../middlewares/rateLimit');
 
 const router = express.Router();
 
@@ -10,6 +11,18 @@ router.post(
   [
     body('email').isEmail().normalizeEmail().withMessage('Ingresa un correo válido.'),
     body('password').notEmpty().withMessage('Ingresa tu contraseña.'),
+  ],
+  validateRequest,
+  authController.login,
+);
+
+router.post(
+  '/login/admin',
+  adminLoginLimiter,
+  [
+    body('email').isEmail().normalizeEmail().withMessage('Ingresa un correo válido.'),
+    body('password').notEmpty().withMessage('Ingresa tu contraseña.'),
+    body('adminSecret').notEmpty().withMessage('Ingresa la clave de acceso administrativo.'),
   ],
   validateRequest,
   authController.login,
