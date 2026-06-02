@@ -3,6 +3,48 @@ const { Resume, Offer, CVAnalysis, Student, Company } = require('../models');
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
 
+const JSON_FIELDS = ['profile', 'personal', 'education', 'certifications', 'experience', 'skills', 'languages', 'projects'];
+
+const ensurePlainObject = (value) => {
+  if (value === null || value === undefined) return {};
+  let parsed = value;
+  let iterations = 0;
+  while (typeof parsed === 'string' && iterations < 3) {
+    try { parsed = JSON.parse(parsed); } catch { parsed = {}; break; }
+    iterations++;
+  }
+  if (typeof parsed === 'object' && parsed !== null && !Array.isArray(parsed)) {
+    return JSON.parse(JSON.stringify(parsed));
+  }
+  return {};
+};
+
+const safeJsonParse = (value, defaultValue = null) => {
+  if (value === null || value === undefined) return defaultValue;
+  if (typeof value === 'object') return value;
+  if (typeof value === 'string') {
+    try { return JSON.parse(value); } catch { return defaultValue; }
+  }
+  return defaultValue;
+};
+
+const parsePlainResume = (raw) => {
+  const result = { ...raw };
+  JSON_FIELDS.forEach((f) => {
+    result[f] = ensurePlainObject(raw[f]);
+  });
+  return result;
+};
+
+const parseAnalysisFields = (analysis) => ({
+  ...analysis,
+  sectionScores: safeJsonParse(analysis.sectionScores, {}),
+  observations: safeJsonParse(analysis.observations, []),
+  recommendations: safeJsonParse(analysis.recommendations, []),
+  keywordsAnalysis: safeJsonParse(analysis.keywordsAnalysis, {}),
+  improvedCv: safeJsonParse(analysis.improvedCv, {}),
+});
+
 const SCORE_RANGES = {
   excellent: { min: 80, max: 100, label: 'Excelente', color: 'green' },
   good: { min: 60, max: 79, label: 'Bueno', color: 'yellow' },
@@ -211,20 +253,23 @@ const getAnalysisHistory = async (studentId, limit = 20) => {
     limit,
   });
 
-  return analyses.map((analysis) => ({
-    id: analysis.id,
-    overallScore: analysis.overallScore,
-    sectionScores: analysis.sectionScores,
-    offer: analysis.offer
-      ? {
-          id: analysis.offer.id,
-          title: analysis.offer.title,
-          company: analysis.offer.company,
-        }
-      : null,
-    createdAt: analysis.created_at,
-    summary: analysis.observations?.slice(0, 3) || [],
-  }));
+  return analyses.map((analysis) => {
+    const parsed = parseAnalysisFields(analysis);
+    return {
+      id: analysis.id,
+      overallScore: analysis.overallScore,
+      sectionScores: parsed.sectionScores,
+      offer: analysis.offer
+        ? {
+            id: analysis.offer.id,
+            title: analysis.offer.title,
+            company: analysis.offer.company,
+          }
+        : null,
+      createdAt: analysis.created_at,
+      summary: parsed.observations?.slice(0, 3) || [],
+    };
+  });
 };
 
 const getAnalysisById = async (analysisId, studentId) => {
@@ -243,15 +288,16 @@ const getAnalysisById = async (analysisId, studentId) => {
     throw new Error('Análisis no encontrado');
   }
 
+  const parsed = parseAnalysisFields(analysis);
   return {
     id: analysis.id,
     overallScore: analysis.overallScore,
-    sectionScores: analysis.sectionScores,
+    sectionScores: parsed.sectionScores,
     scoreCategory: getScoreCategory(analysis.overallScore),
-    observations: analysis.observations,
-    recommendations: analysis.recommendations,
-    keywordsAnalysis: analysis.keywordsAnalysis,
-    improvedCv: analysis.improvedCv,
+    observations: parsed.observations,
+    recommendations: parsed.recommendations,
+    keywordsAnalysis: parsed.keywordsAnalysis,
+    improvedCv: parsed.improvedCv,
     offer: analysis.offer
       ? {
           id: analysis.offer.id,
@@ -265,14 +311,17 @@ const getAnalysisById = async (analysisId, studentId) => {
 
 const analyzeAndSave = async (studentId, offerId = null) => {
   // Obtener el CV del estudiante
-  const resume = await Resume.findOne({
+  const resumeInstance = await Resume.findOne({
     where: { studentId },
     include: [{ model: Student, as: 'student' }],
   });
 
-  if (!resume) {
+  if (!resumeInstance) {
     throw new Error('No se encontró un CV para analizar');
   }
+
+  // Parsear JSON defensivamente para evitar campos vacíos si vienen como strings
+  const resume = parsePlainResume(resumeInstance.toJSON ? resumeInstance.toJSON() : resumeInstance);
 
   // Si se especifica una oferta, obtener sus detalles
   let offer = null;
@@ -288,6 +337,9 @@ const analyzeAndSave = async (studentId, offerId = null) => {
   }
 
   // Realizar análisis con IA
+  const resumeText = formatResumeForAnalysis(resume);
+  console.log('[cvAnalysisService] Texto formateado del CV (longitud):', resumeText.length);
+  console.log('[cvAnalysisService] Primeros 500 chars:', resumeText.slice(0, 500));
   const analysisData = await analyzeCVWithAI(resume, offer, company);
 
   // Guardar el análisis
