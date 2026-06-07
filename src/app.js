@@ -15,6 +15,8 @@ const simulationRoutes = require('./routes/simulationRoutes');
 const notificationRoutes = require('./routes/notificationRoutes');
 const cvAnalysisRoutes = require('./routes/cvAnalysisRoutes');
 const recommendationRoutes = require('./routes/recommendationRoutes');
+const alertRoutes = require('./routes/alertRoutes');
+const savedCompanyRoutes = require('./routes/savedCompanyRoutes');
 const errorHandler = require('./middlewares/errorHandler');
 
 const app = express();
@@ -52,6 +54,8 @@ app.use('/api/simulations', simulationRoutes);
 app.use('/api/recommendations', recommendationRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/cv-analysis', cvAnalysisRoutes);
+app.use('/api/alerts', alertRoutes);
+app.use('/api/saved-companies', savedCompanyRoutes);
 app.use(errorHandler);
 
 module.exports = app;

@@ -1,5 +1,6 @@
 const { Offer, Company, User } = require('../models');
 const { Op } = require('sequelize');
+const alertService = require('./alertService');
 
 const getCompanies = async (filters = {}) => {
   const where = {};
@@ -205,6 +206,18 @@ const approveOffer = async (offerId, adminId) => {
     moderatedAt: new Date(),
     moderatedBy: adminId,
     rejectionReason: null,
+  });
+
+  // Disparar alertas a estudiantes compatibles (no bloqueante)
+  // Usamos process.nextTick para no retrasar la respuesta HTTP
+  process.nextTick(async () => {
+    try {
+      console.log(`[AlertService] Procesando alertas para oferta aprobada #${offer.id}`);
+      const alertResults = await alertService.processNewOffer(offer);
+      console.log(`[AlertService] Oferta #${offer.id}: ${alertResults.alertsSent} alertas enviadas, ${alertResults.totalProcessed} estudiantes procesados`);
+    } catch (alertError) {
+      console.error(`[AlertService] Error procesando alertas para oferta #${offer.id}:`, alertError);
+    }
   });
 
   return {

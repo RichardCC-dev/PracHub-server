@@ -16,7 +16,16 @@ const Notification = sequelize.define(
       references: { model: 'Users', key: 'id' },
     },
     type: {
-      type: DataTypes.ENUM('status_change', 'application_received', 'offer_approved', 'offer_rejected'),
+      type: DataTypes.ENUM(
+        'status_change',
+        'application_received',
+        'offer_approved',
+        'offer_rejected',
+        'offer_match',
+        'followed_company_offer',
+        'message_received',
+        'cv_viewed'
+      ),
       allowNull: false,
     },
     title: {

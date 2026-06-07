@@ -11,8 +11,11 @@ const Application = require('./Application');
 const Simulation = require('./Simulation');
 const Notification = require('./Notification');
 const CVAnalysis = require('./CVAnalysis');
+const AlertSettings = require('./AlertSettings');
+const SavedCompany = require('./SavedCompany');
+const AlertHistory = require('./AlertHistory');
 
-// Validación de carga de todos los modelos (10 en total)
+// Validación de carga de todos los modelos (15 en total)
 [
   { name: 'User', model: User },
   { name: 'Student', model: Student },
@@ -25,7 +28,10 @@ const CVAnalysis = require('./CVAnalysis');
   { name: 'Application', model: Application },
   { name: 'Notification', model: Notification },
   { name: 'CVAnalysis', model: CVAnalysis },
-  { name: 'Simulation', model: Simulation }
+  { name: 'Simulation', model: Simulation },
+  { name: 'AlertSettings', model: AlertSettings },
+  { name: 'SavedCompany', model: SavedCompany },
+  { name: 'AlertHistory', model: AlertHistory }
 ].forEach(item => {
   if (!item.model || !item.model.prototype || !item.model.prototype.constructor.name) {
     throw new Error(`¡El modelo ${item.name} no se cargó correctamente! Revisa el archivo ${item.name}.js`);
@@ -240,6 +246,70 @@ CVAnalysis.belongsTo(Offer, {
   as: 'offer',
 });
 
+// ==========================================
+// Relaciones de Alertas y Empresas Seguidas (HU-13, HU-21)
+// ==========================================
+
+// --- Relaciones de AlertSettings ---
+Student.hasOne(AlertSettings, {
+  foreignKey: 'studentId',
+  as: 'alertSettings',
+  onDelete: 'CASCADE',
+});
+
+AlertSettings.belongsTo(Student, {
+  foreignKey: 'studentId',
+  as: 'student',
+});
+
+// --- Relaciones de SavedCompany ---
+Student.belongsToMany(Company, {
+  through: SavedCompany,
+  foreignKey: 'studentId',
+  otherKey: 'companyId',
+  as: 'followedCompanies',
+});
+
+Company.belongsToMany(Student, {
+  through: SavedCompany,
+  foreignKey: 'companyId',
+  otherKey: 'studentId',
+  as: 'followers',
+});
+
+SavedCompany.belongsTo(Student, {
+  foreignKey: 'studentId',
+  as: 'student',
+});
+
+SavedCompany.belongsTo(Company, {
+  foreignKey: 'companyId',
+  as: 'company',
+});
+
+// --- Relaciones de AlertHistory ---
+Student.hasMany(AlertHistory, {
+  foreignKey: 'studentId',
+  as: 'alertHistory',
+  onDelete: 'CASCADE',
+});
+
+AlertHistory.belongsTo(Student, {
+  foreignKey: 'studentId',
+  as: 'student',
+});
+
+Offer.hasMany(AlertHistory, {
+  foreignKey: 'offerId',
+  as: 'alertHistory',
+  onDelete: 'CASCADE',
+});
+
+AlertHistory.belongsTo(Offer, {
+  foreignKey: 'offerId',
+  as: 'offer',
+});
+
 module.exports = {
   sequelize,
   User,
@@ -254,4 +324,7 @@ module.exports = {
   Simulation,
   Notification,
   CVAnalysis,
+  AlertSettings,
+  SavedCompany,
+  AlertHistory,
 };

@@ -306,6 +306,179 @@ const sendAdminLoginAlert = async ({ email, ip, status, adminEmail }) => {
   return info;
 };
 
+const sendOfferMatchAlert = async ({
+  to,
+  firstName,
+  offerTitle,
+  companyName,
+  compatibilityScore,
+  isFromFollowedCompany,
+  offerId,
+}) => {
+  const transporter = await getTransporter();
+  const appUrl = process.env.APP_URL || process.env.CLIENT_URL || 'http://localhost:5173';
+
+  const priorityBadge = isFromFollowedCompany
+    ? `<div style="background:#fef3c7;border:1px solid #f59e0b;padding:8px 16px;border-radius:8px;display:inline-block;margin-bottom:16px;">
+       <span style="color:#92400e;font-weight:600;">★ Empresa que sigues</span>
+     </div>`
+    : '';
+
+  const subject = isFromFollowedCompany
+    ? `¡${companyName} tiene una oferta para ti! - PracHub`
+    : 'Nueva oferta compatible con tu perfil - PracHub';
+
+  const info = await transporter.sendMail({
+    from: process.env.SMTP_FROM || '"PracHub" <noreply@prachub.pe>',
+    to,
+    subject,
+    text: `Hola ${firstName}, encontramos una oferta compatible: "${offerTitle}" en ${companyName} con ${compatibilityScore}% de compatibilidad. Ver en: ${appUrl}/offers/${offerId}`,
+    html: emailBase(`
+      ${priorityBadge}
+      <h2 style="color:#064E3B;margin-top:0;">¡Hola ${firstName}!</h2>
+      <p>Encontramos una oferta que coincide con tu perfil:</p>
+      <div style="background:#f0fdf4;border:1px solid #bbf7d0;padding:20px;border-radius:12px;margin:16px 0;">
+        <p style="margin:0 0 8px 0;font-weight:600;color:#064E3B;font-size:18px;">${offerTitle}</p>
+        <p style="margin:0 0 12px 0;color:#047857;">${companyName}</p>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <div style="background:#064E3B;color:#fff;padding:8px 16px;border-radius:20px;font-weight:700;font-size:16px;">
+            ${compatibilityScore}% compatibilidad
+          </div>
+        </div>
+      </div>
+      <p style="color:#374151;">Esta oferta tiene un alto grado de coincidencia con tus habilidades y experiencia. ¡No dejes pasar esta oportunidad!</p>
+      <a href="${appUrl}/offers" style="display:inline-block;background:#065f46;color:#fff;padding:12px 24px;border-radius:12px;text-decoration:none;font-weight:700;margin-top:8px;">
+        Ver oferta y postular
+      </a>
+    `),
+  });
+
+  logPreview(info);
+  return info;
+};
+
+const sendDailyDigest = async ({ to, firstName, offers }) => {
+  const transporter = await getTransporter();
+  const appUrl = process.env.APP_URL || process.env.CLIENT_URL || 'http://localhost:5173';
+
+  const offersList = offers
+    .map(
+      (item) => `
+    <div style="background:#f9fafb;border:1px solid #e5e7eb;padding:16px;border-radius:8px;margin-bottom:12px;">
+      <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:8px;">
+        <div>
+          <p style="margin:0;font-weight:600;color:#111827;">${item.offer.title}</p>
+          <p style="margin:4px 0 0 0;color:#6b7280;font-size:14px;">${item.offer.company?.legalName || 'Empresa'}</p>
+        </div>
+        ${item.isFromFollowedCompany ? '<span style="color:#f59e0b;font-size:18px;">★</span>' : ''}
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;">
+        <span style="background:#064E3B;color:#fff;padding:4px 12px;border-radius:12px;font-weight:600;font-size:14px;">
+          ${item.compatibilityScore}%
+        </span>
+        <a href="${appUrl}/offers/${item.offer.id}" style="color:#065f46;text-decoration:none;font-weight:600;font-size:14px;">
+          Ver oferta →
+        </a>
+      </div>
+    </div>
+  `
+    )
+    .join('');
+
+  const info = await transporter.sendMail({
+    from: process.env.SMTP_FROM || '"PracHub" <noreply@prachub.pe>',
+    to,
+    subject: `Resumen diario: ${offers.length} ofertas compatibles - PracHub`,
+    text: `Hola ${firstName}, hoy tenemos ${offers.length} ofertas compatibles con tu perfil. Revisalas en: ${appUrl}/offers`,
+    html: emailBase(`
+      <h2 style="color:#064E3B;margin-top:0;">Resumen diario de ofertas</h2>
+      <p>Hola ${firstName},</p>
+      <p>Hoy encontramos <strong>${offers.length} ofertas</strong> compatibles con tu perfil:</p>
+      <div style="margin:20px 0;">
+        ${offersList}
+      </div>
+      <a href="${appUrl}/offers" style="display:inline-block;background:#065f46;color:#fff;padding:12px 24px;border-radius:12px;text-decoration:none;font-weight:700;margin-top:8px;">
+        Ver todas las ofertas
+      </a>
+    `),
+  });
+
+  logPreview(info);
+  return info;
+};
+
+const sendWeeklyDigest = async ({ to, firstName, offers }) => {
+  const transporter = await getTransporter();
+  const appUrl = process.env.APP_URL || process.env.CLIENT_URL || 'http://localhost:5173';
+
+  const followedOffers = offers.filter((o) => o.isFromFollowedCompany);
+  const regularOffers = offers.filter((o) => !o.isFromFollowedCompany);
+
+  const renderOfferList = (list) =>
+    list
+      .map(
+        (item) => `
+    <div style="background:#f9fafb;border:1px solid #e5e7eb;padding:16px;border-radius:8px;margin-bottom:12px;">
+      <p style="margin:0 0 4px 0;font-weight:600;color:#111827;">${item.offer.title}</p>
+      <p style="margin:0 0 8px 0;color:#6b7280;font-size:14px;">${item.offer.company?.legalName || 'Empresa'}</p>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="background:#064E3B;color:#fff;padding:4px 12px;border-radius:12px;font-weight:600;font-size:14px;">
+          ${item.compatibilityScore}%
+        </span>
+        <a href="${appUrl}/offers/${item.offer.id}" style="color:#065f46;text-decoration:none;font-weight:600;font-size:14px;">
+          Ver oferta →
+        </a>
+      </div>
+    </div>
+  `
+      )
+      .join('');
+
+  let content = `
+    <h2 style="color:#064E3B;margin-top:0;">Resumen semanal de ofertas</h2>
+    <p>Hola ${firstName},</p>
+    <p>Esta semana encontramos <strong>${offers.length} ofertas</strong> compatibles con tu perfil.</p>
+  `;
+
+  if (followedOffers.length > 0) {
+    content += `
+      <div style="margin:20px 0;">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+          <span style="color:#f59e0b;font-size:20px;">★</span>
+          <h3 style="margin:0;color:#92400e;font-size:16px;">De empresas que sigues (${followedOffers.length})</h3>
+        </div>
+        ${renderOfferList(followedOffers)}
+      </div>
+    `;
+  }
+
+  if (regularOffers.length > 0) {
+    content += `
+      <div style="margin:20px 0;">
+        <h3 style="margin:0 0 12px 0;color:#374151;font-size:16px;">Otras ofertas recomendadas (${regularOffers.length})</h3>
+        ${renderOfferList(regularOffers)}
+      </div>
+    `;
+  }
+
+  content += `
+    <a href="${appUrl}/offers" style="display:inline-block;background:#065f46;color:#fff;padding:12px 24px;border-radius:12px;text-decoration:none;font-weight:700;margin-top:8px;">
+      Explorar todas las ofertas
+    </a>
+  `;
+
+  const info = await transporter.sendMail({
+    from: process.env.SMTP_FROM || '"PracHub" <noreply@prachub.pe>',
+    to,
+    subject: `Resumen semanal: ${offers.length} ofertas compatibles - PracHub`,
+    text: `Hola ${firstName}, esta semana tenemos ${offers.length} ofertas compatibles con tu perfil. Revisalas en: ${appUrl}/offers`,
+    html: emailBase(content),
+  });
+
+  logPreview(info);
+  return info;
+};
+
 module.exports = {
   sendEmailVerificationEmail,
   sendWelcomeEmail,
@@ -317,4 +490,7 @@ module.exports = {
   sendOfferRejectedNotification,
   sendCompanyPublishingEnabledNotification,
   sendAdminLoginAlert,
+  sendOfferMatchAlert,
+  sendDailyDigest,
+  sendWeeklyDigest,
 };
