@@ -9,13 +9,40 @@ const router = express.Router();
 
 router.use(authenticate);
 
+/**
+ * @swagger
+ * /applications:
+ *   post:
+ *     summary: Crear una nueva postulación
+ *     tags: [Applications]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - offerId
+ *               - resumeId
+ *             properties:
+ *               offerId:
+ *                 type: integer
+ *               resumeId:
+ *                 type: integer
+ *               resumeVersionId:
+ *                 type: integer
+ *     responses:
+ *       201:
+ *         description: Postulación creada
+ */
 router.post(
   '/',
   authorize('student'),
   [
     body('offerId').isInt({ min: 1 }),
     body('resumeId').isInt({ min: 1 }),
-    body('coverLetter').optional({ nullable: true }).isString().trim().isLength({ max: 5000 }),
     body('resumeVersionId').optional({ nullable: true }).isInt({ min: 1 }),
     validateRequest,
   ],
@@ -32,6 +59,18 @@ router.get(
   applicationController.getApplicationPreview
 );
 
+/**
+ * @swagger
+ * /applications/my-applications:
+ *   get:
+ *     summary: Obtener mis postulaciones (Estudiante)
+ *     tags: [Applications]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Lista de postulaciones propias
+ */
 router.get(
   '/my-applications',
   authorize('student'),
@@ -48,6 +87,24 @@ router.get(
   applicationController.canApply
 );
 
+/**
+ * @swagger
+ * /applications/offer/{offerId}:
+ *   get:
+ *     summary: Obtener postulaciones para una oferta (Empresa)
+ *     tags: [Applications]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: offerId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Lista de postulaciones para la oferta
+ */
 router.get(
   '/offer/:offerId',
   authorize('company'),
@@ -58,6 +115,40 @@ router.get(
   applicationController.getOfferApplications
 );
 
+/**
+ * @swagger
+ * /applications/{applicationId}/status:
+ *   patch:
+ *     summary: Actualizar estado de la postulación
+ *     tags: [Applications]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: applicationId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - status
+ *             properties:
+ *               status:
+ *                 type: string
+ *                 enum: [enviada, revision, descartada, aceptada]
+ *               notes:
+ *                 type: string
+ *               internalNotes:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Estado actualizado
+ */
 router.patch(
   '/:applicationId/status',
   authorize('company'),

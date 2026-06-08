@@ -25,6 +25,65 @@ const VALID_COMPANY_SIZES = ['micro', 'small', 'medium', 'large'];
 
 const VALID_COUNTRIES = ['Perú', 'Colombia', 'México', 'Chile', 'Argentina', 'Ecuador', 'Bolivia', 'Otro'];
 
+/**
+ * @swagger
+ * /companies/register:
+ *   post:
+ *     summary: Registrar empresa
+ *     tags: [Companies]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *               - password
+ *               - taxId
+ *               - legalName
+ *               - industry
+ *               - companySize
+ *               - country
+ *               - responsibleName
+ *               - responsiblePosition
+ *               - responsiblePhone
+ *             properties:
+ *               email:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *               taxId:
+ *                 type: string
+ *               legalName:
+ *                 type: string
+ *               tradeName:
+ *                 type: string
+ *               description:
+ *                 type: string
+ *               industry:
+ *                 type: string
+ *               companySize:
+ *                 type: string
+ *                 enum: [micro, small, medium, large]
+ *               country:
+ *                 type: string
+ *               city:
+ *                 type: string
+ *               address:
+ *                 type: string
+ *               responsibleName:
+ *                 type: string
+ *               responsiblePosition:
+ *                 type: string
+ *               responsiblePhone:
+ *                 type: string
+ *     responses:
+ *       201:
+ *         description: Empresa registrada exitosamente
+ *       400:
+ *         description: Datos inválidos
+ */
 router.post(
   '/register',
   [
@@ -126,8 +185,57 @@ router.post(
 
 router.get('/verify-email/:token', companyController.verifyEmail);
 
+/**
+ * @swagger
+ * /companies/profile:
+ *   get:
+ *     summary: Obtener perfil de la empresa
+ *     tags: [Companies]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Perfil de la empresa
+ */
 router.get('/profile', authenticate, authorize('company'), companyController.getProfile);
 
+/**
+ * @swagger
+ * /companies/profile:
+ *   patch:
+ *     summary: Actualizar perfil de la empresa
+ *     tags: [Companies]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               description:
+ *                 type: string
+ *               tradeName:
+ *                 type: string
+ *               websiteUrl:
+ *                 type: string
+ *               logoUrl:
+ *                 type: string
+ *               city:
+ *                 type: string
+ *               address:
+ *                 type: string
+ *               responsiblePhone:
+ *                 type: string
+ *               cultureTags:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *     responses:
+ *       200:
+ *         description: Perfil actualizado
+ */
 router.patch(
   '/profile',
   authenticate,

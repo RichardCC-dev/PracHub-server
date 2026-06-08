@@ -40,10 +40,9 @@ const applicationService = {
    * @param {number} studentId - ID del estudiante
    * @param {number} offerId - ID de la oferta
    * @param {number} resumeId - ID del CV activo
-   * @param {string} coverLetter - Carta de presentación (opcional)
    * @param {number} resumeVersionId - ID de la versión del CV (opcional)
    */
-  async createApplication(studentId, offerId, resumeId, coverLetter = null, resumeVersionId = null) {
+  async createApplication(studentId, offerId, resumeId, resumeVersionId = null) {
     // Verificar si ya existe una postulación para esta oferta
     const existingApplication = await Application.findOne({
       where: {
@@ -115,7 +114,6 @@ const applicationService = {
       offerId,
       resumeId,
       resumeVersionId,
-      coverLetter,
       status: 'enviada',
       appliedAt: new Date(),
     });

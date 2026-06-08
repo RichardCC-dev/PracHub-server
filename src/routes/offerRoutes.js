@@ -7,8 +7,16 @@ const offerController = require('../controllers/offerController');
 
 const router = express.Router();
 
-// GET /api/offers - Obtener todas las ofertas públicas (para estudiantes)
-// Esta ruta es pública y no requiere autenticación de empresa
+/**
+ * @swagger
+ * /offers:
+ *   get:
+ *     summary: Obtener todas las ofertas públicas
+ *     tags: [Offers]
+ *     responses:
+ *       200:
+ *         description: Lista de ofertas
+ */
 router.get('/', offerController.getAllOffers);
 
 const offerValidation = [
@@ -61,19 +69,132 @@ const offerValidation = [
 router.use(authenticate);
 router.use(authorize('company'));
 
-// GET /api/offers/my - Mis ofertas (DEBE ir antes de /:offerId)
+/**
+ * @swagger
+ * /offers/my:
+ *   get:
+ *     summary: Obtener mis ofertas (Empresa)
+ *     tags: [Offers]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Lista de ofertas propias
+ */
 router.get('/my', offerController.getMyOffers);
 
-// POST /api/offers - Crear oferta
+/**
+ * @swagger
+ * /offers:
+ *   post:
+ *     summary: Crear una nueva oferta
+ *     tags: [Offers]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - title
+ *               - description
+ *               - area
+ *               - modality
+ *             properties:
+ *               title:
+ *                 type: string
+ *               description:
+ *                 type: string
+ *               area:
+ *                 type: string
+ *               modality:
+ *                 type: string
+ *                 enum: [remote, in_person, hybrid]
+ *               requirements:
+ *                 type: string
+ *               duration:
+ *                 type: string
+ *               compensation:
+ *                 type: string
+ *               careerTags:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *               expiresAt:
+ *                 type: string
+ *                 format: date-time
+ *     responses:
+ *       201:
+ *         description: Oferta creada
+ */
 router.post('/', offerValidation, validateRequest, offerController.createOffer);
 
-// GET /api/offers/:offerId - Ver oferta por ID (requiere auth para empresas)
+/**
+ * @swagger
+ * /offers/{offerId}:
+ *   get:
+ *     summary: Obtener detalle de oferta
+ *     tags: [Offers]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: offerId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Detalle de oferta
+ */
 router.get('/:offerId', param('offerId').isInt(), validateRequest, offerController.getOfferById);
 
-// PUT /api/offers/:offerId - Editar oferta
+/**
+ * @swagger
+ * /offers/{offerId}:
+ *   put:
+ *     summary: Actualizar una oferta
+ *     tags: [Offers]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: offerId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *     responses:
+ *       200:
+ *         description: Oferta actualizada
+ */
 router.put('/:offerId', offerValidation, validateRequest, offerController.updateOffer);
 
-// PATCH /api/offers/:offerId/close - Cerrar oferta
+/**
+ * @swagger
+ * /offers/{offerId}/close:
+ *   patch:
+ *     summary: Cerrar una oferta
+ *     tags: [Offers]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: offerId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Oferta cerrada
+ */
 router.patch('/:offerId/close', param('offerId').isInt(), validateRequest, offerController.closeOffer);
 
 module.exports = router;

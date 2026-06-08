@@ -5,7 +5,18 @@ const authorize = require('../middlewares/authorize');
 
 const router = express.Router();
 
-// Ruta protegida solo para estudiantes
+/**
+ * @swagger
+ * /recommendations:
+ *   get:
+ *     summary: Obtener recomendaciones de ofertas (Estudiante)
+ *     tags: [Recommendations]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Lista de ofertas recomendadas
+ */
 router.get('/', authenticate, authorize('student'), getRecommendations);
 
 module.exports = router;

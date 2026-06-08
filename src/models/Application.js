@@ -45,11 +45,6 @@ const Application = sequelize.define(
         key: 'id',
       },
     },
-    coverLetter: {
-      type: DataTypes.TEXT,
-      allowNull: true,
-      field: 'cover_letter',
-    },
     status: {
       type: DataTypes.ENUM('enviada', 'revision', 'descartada', 'aceptada'),
       allowNull: false,

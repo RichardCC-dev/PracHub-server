@@ -19,6 +19,9 @@ const alertRoutes = require('./routes/alertRoutes');
 const savedCompanyRoutes = require('./routes/savedCompanyRoutes');
 const errorHandler = require('./middlewares/errorHandler');
 
+const swaggerUi = require('swagger-ui-express');
+const swaggerSpecs = require('./docs/swagger');
+
 const app = express();
 
 // Configurar helmet sin CORS restrictions para archivos estáticos
@@ -56,6 +59,10 @@ app.use('/api/notifications', notificationRoutes);
 app.use('/api/cv-analysis', cvAnalysisRoutes);
 app.use('/api/alerts', alertRoutes);
 app.use('/api/saved-companies', savedCompanyRoutes);
+
+// Configuración de Swagger
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpecs, { explorer: true }));
+
 app.use(errorHandler);
 
 module.exports = app;

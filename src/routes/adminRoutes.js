@@ -11,31 +11,171 @@ const router = express.Router();
 router.use(authenticate);
 router.use(authorizeAdmin);
 
-// GET /api/admin/companies - Listar empresas
+/**
+ * @swagger
+ * /admin/companies:
+ *   get:
+ *     summary: Listar todas las empresas (Admin)
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Lista de empresas
+ */
 router.get('/companies', adminController.getCompanies);
 
-// POST /api/admin/companies/:companyId/enable - Habilitar publicación
+/**
+ * @swagger
+ * /admin/companies/{companyId}/enable:
+ *   post:
+ *     summary: Habilitar publicación para una empresa (Admin)
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: companyId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Publicación habilitada
+ */
 router.post('/companies/:companyId/enable', adminController.enableCompanyPublishing);
 
-// POST /api/admin/companies/:companyId/disable - Deshabilitar publicación
+/**
+ * @swagger
+ * /admin/companies/{companyId}/disable:
+ *   post:
+ *     summary: Deshabilitar publicación para una empresa (Admin)
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: companyId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Publicación deshabilitada
+ */
 router.post('/companies/:companyId/disable', adminController.disableCompanyPublishing);
 
-// GET /api/admin/offers/status/:status - Listar ofertas por estado
+/**
+ * @swagger
+ * /admin/offers/status/{status}:
+ *   get:
+ *     summary: Listar ofertas por estado (Admin)
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: status
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Lista de ofertas
+ */
 router.get('/offers/status/:status', adminController.getOffersByStatus);
 
-// GET /api/admin/offers/pending - Listar ofertas pendientes
+/**
+ * @swagger
+ * /admin/offers/pending:
+ *   get:
+ *     summary: Listar ofertas pendientes (Admin)
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Lista de ofertas pendientes
+ */
 router.get('/offers/pending', adminController.getPendingOffers);
 
-// GET /api/admin/offers/stats - Estadísticas de ofertas
+/**
+ * @swagger
+ * /admin/offers/stats:
+ *   get:
+ *     summary: Obtener estadísticas de ofertas (Admin)
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Estadísticas
+ */
 router.get('/offers/stats', adminController.getOfferStats);
 
-// GET /api/admin/offers/history - Historial de moderación
+/**
+ * @swagger
+ * /admin/offers/history:
+ *   get:
+ *     summary: Historial de moderación (Admin)
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Historial de moderación
+ */
 router.get('/offers/history', adminController.getModerationHistory);
 
-// POST /api/admin/offers/:offerId/approve - Aprobar oferta
+/**
+ * @swagger
+ * /admin/offers/{offerId}/approve:
+ *   post:
+ *     summary: Aprobar oferta (Admin)
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: offerId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Oferta aprobada
+ */
 router.post('/offers/:offerId/approve', adminController.approveOffer);
 
-// POST /api/admin/offers/:offerId/reject - Rechazar oferta
+/**
+ * @swagger
+ * /admin/offers/{offerId}/reject:
+ *   post:
+ *     summary: Rechazar oferta (Admin)
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: offerId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - rejectionReason
+ *             properties:
+ *               rejectionReason:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Oferta rechazada
+ */
 router.post(
   '/offers/:offerId/reject',
   [

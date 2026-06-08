@@ -8,7 +8,27 @@ const router = Router();
 
 router.use(authMiddleware);
 
-// POST /api/cv-analysis - Realizar nuevo análisis
+/**
+ * @swagger
+ * /cv-analysis:
+ *   post:
+ *     summary: Realizar nuevo análisis de CV (con o sin oferta)
+ *     tags: [CV Analysis]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: false
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               offerId:
+ *                 type: integer
+ *     responses:
+ *       200:
+ *         description: Análisis completado
+ */
 router.post(
   '/',
   [
@@ -21,7 +41,24 @@ router.post(
   cvAnalysisController.analyzeCV,
 );
 
-// GET /api/cv-analysis/history - Obtener historial de análisis
+/**
+ * @swagger
+ * /cv-analysis/history:
+ *   get:
+ *     summary: Obtener historial de análisis de CV
+ *     tags: [CV Analysis]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *         description: Límite de resultados
+ *     responses:
+ *       200:
+ *         description: Historial de análisis
+ */
 router.get(
   '/history',
   [
@@ -34,7 +71,24 @@ router.get(
   cvAnalysisController.getAnalysisHistory,
 );
 
-// GET /api/cv-analysis/:analysisId - Obtener detalles de un análisis
+/**
+ * @swagger
+ * /cv-analysis/{analysisId}:
+ *   get:
+ *     summary: Obtener detalles de un análisis
+ *     tags: [CV Analysis]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: analysisId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Detalles del análisis
+ */
 router.get(
   '/:analysisId',
   [
@@ -46,7 +100,24 @@ router.get(
   cvAnalysisController.getAnalysisDetails,
 );
 
-// DELETE /api/cv-analysis/:analysisId - Eliminar un análisis
+/**
+ * @swagger
+ * /cv-analysis/{analysisId}:
+ *   delete:
+ *     summary: Eliminar un análisis
+ *     tags: [CV Analysis]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: analysisId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Análisis eliminado
+ */
 router.delete(
   '/:analysisId',
   [

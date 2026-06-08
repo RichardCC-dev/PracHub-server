@@ -7,8 +7,8 @@ const applicationController = {
       if (!studentId) {
         return res.status(403).json({ success: false, message: 'Solo estudiantes' });
       }
-      const { offerId, resumeId, coverLetter, resumeVersionId } = req.body;
-      const application = await applicationService.createApplication(studentId, offerId, resumeId, coverLetter, resumeVersionId);
+      const { offerId, resumeId, resumeVersionId } = req.body;
+      const application = await applicationService.createApplication(studentId, offerId, resumeId, resumeVersionId);
       res.status(201).json({ success: true, data: application });
     } catch (error) {
       next(error);
