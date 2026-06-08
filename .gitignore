@@ -3,3 +3,10 @@ node_modules/
 
 # Uploaded files (logos)
 public/uploads/
+
+# Development/Test scripts
+scripts/test*.js
+scripts/cleanup*.js
+scripts/getStudentCV.js
+scripts/seedPerfectOffer.js
+scripts/seedOffers.sql

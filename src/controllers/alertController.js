@@ -84,10 +84,6 @@ const alertController = {
       .optional()
       .isIn(['immediate', 'daily', 'weekly'])
       .withMessage('La frecuencia debe ser: immediate, daily o weekly'),
-    body('minCompatibility')
-      .optional()
-      .isInt({ min: 0, max: 100 })
-      .withMessage('La compatibilidad mínima debe estar entre 0 y 100'),
     body('emailEnabled')
       .optional()
       .isBoolean()

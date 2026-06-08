@@ -13,7 +13,7 @@ const {
 const recommendationService = require('./recommendationService');
 const emailService = require('./emailService');
 
-const THRESHOLD_COMPATIBILITY = 70;
+const THRESHOLD_COMPATIBILITY = recommendationService.COMPATIBILITY_THRESHOLD;
 
 const alertService = {
   /**
@@ -28,7 +28,6 @@ const alertService = {
       settings = await AlertSettings.create({
         studentId,
         frequency: 'immediate',
-        minCompatibility: THRESHOLD_COMPATIBILITY,
         emailEnabled: true,
         platformEnabled: true,
       });
@@ -45,7 +44,6 @@ const alertService = {
 
     const allowedFields = [
       'frequency',
-      'minCompatibility',
       'emailEnabled',
       'platformEnabled',
       'dailyDigestTime',
@@ -84,28 +82,10 @@ const alertService = {
 
   /**
    * Calcula la compatibilidad entre un estudiante y una oferta
+   * Delega el cálculo a recommendationService para consistencia
    */
   async calculateCompatibility(studentId, offer) {
-    try {
-      const resume = await Resume.findOne({ where: { studentId } });
-      if (!resume) return 0;
-
-      const studentTextProfile = await recommendationService.buildStudentTextProfile(studentId);
-      const offerTextProfile = await recommendationService.buildOfferTextProfile(offer);
-
-      const tfidf = new (recommendationService.TfIdf)();
-      tfidf.addDocument(studentTextProfile);
-      tfidf.addDocument(offerTextProfile);
-
-      const studentVector = recommendationService.getTfIdfVector(tfidf, 0);
-      const offerVector = recommendationService.getTfIdfVector(tfidf, 1);
-      const similarity = recommendationService.cosineSimilarity(studentVector, offerVector);
-
-      return Math.round(similarity * 100);
-    } catch (error) {
-      console.error('Error calculando compatibilidad:', error);
-      return 0;
-    }
+    return await recommendationService.calculateCompatibilityScore(studentId, offer);
   },
 
   /**
@@ -119,8 +99,8 @@ const alertService = {
       return { sent: false, reason: 'already_alerted' };
     }
 
-    // Verificar umbral mínimo de compatibilidad
-    if (compatibilityScore < settings.minCompatibility) {
+    // Verificar umbral mínimo de compatibilidad (fijo del sistema)
+    if (compatibilityScore < THRESHOLD_COMPATIBILITY) {
       return { sent: false, reason: 'below_threshold' };
     }
 
@@ -171,8 +151,8 @@ const alertService = {
           ? `¡${company?.legalName || 'Empresa'} publicó una oferta para ti!`
           : 'Nueva oferta compatible con tu perfil';
         const message = isFromFollowedCompany
-          ? `"${offer.title}" tiene un ${compatibilityScore}% de compatibilidad con tu perfil. ¡Postula ahora!`
-          : `Encontramos "${offer.title}" de ${company?.legalName || 'Empresa'} con ${compatibilityScore}% de compatibilidad.`;
+          ? `"${offer.title}" - ${company?.legalName || 'Empresa'}. ¡Postula ahora!`
+          : `"${offer.title}" - ${company?.legalName || 'Empresa'}. ¡Revisa esta oferta!`;
 
         await Notification.create({
           userId: student.userId,
@@ -255,8 +235,8 @@ const alertService = {
           // Verificar si sigue a la empresa
           const isFromFollowedCompany = await this.isCompanyFollowed(student.id, offer.companyId);
 
-          // Enviar alerta si cumple criterios
-          if (compatibilityScore >= settings.minCompatibility || isFromFollowedCompany) {
+          // Enviar alerta si cumple criterios (umbral fijo del sistema)
+          if (compatibilityScore >= THRESHOLD_COMPATIBILITY || isFromFollowedCompany) {
             const result = await this.sendImmediateAlert(
               student.id,
               offer,
@@ -310,7 +290,7 @@ const alertService = {
           const unalertedOffers = await this.getUnalertedOffersForStudent(
             setting.studentId,
             today,
-            setting.minCompatibility
+            THRESHOLD_COMPATIBILITY
           );
 
           if (unalertedOffers.length === 0) continue;
@@ -397,7 +377,7 @@ const alertService = {
           const unalertedOffers = await this.getUnalertedOffersForStudent(
             setting.studentId,
             weekAgo,
-            setting.minCompatibility
+            THRESHOLD_COMPATIBILITY
           );
 
           if (unalertedOffers.length === 0) continue;
@@ -440,7 +420,7 @@ const alertService = {
   /**
    * Obtiene ofertas no alertadas para un estudiante desde una fecha
    */
-  async getUnalertedOffersForStudent(studentId, sinceDate, minCompatibility) {
+  async getUnalertedOffersForStudent(studentId, sinceDate, minCompatibilityThreshold) {
     // Obtener todas las ofertas aprobadas desde la fecha
     const offers = await Offer.findAll({
       where: {
@@ -464,7 +444,7 @@ const alertService = {
       const isFromFollowedCompany = await this.isCompanyFollowed(studentId, offer.companyId);
 
       // Incluir si cumple umbral o es de empresa seguida
-      if (compatibilityScore >= minCompatibility || isFromFollowedCompany) {
+      if (compatibilityScore >= minCompatibilityThreshold || isFromFollowedCompany) {
         result.push({
           offer,
           compatibilityScore,

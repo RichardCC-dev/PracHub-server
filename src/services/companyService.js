@@ -54,15 +54,12 @@ const sendEmailVerification = async ({ user, email, companyName }) => {
   const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
   const expiresAt = new Date(Date.now() + EMAIL_VERIFICATION_EXPIRATION_MINUTES * 60 * 1000);
 
-  console.log('[CompanyService] Creando token de verificación para usuario:', user.id);
-
   try {
     await EmailVerificationToken.create({
       userId: user.id,
       tokenHash,
       expiresAt,
     });
-    console.log('[CompanyService] Token creado exitosamente');
   } catch (dbError) {
     console.error('[CompanyService] Error al crear token:', dbError.message);
     throw dbError;
@@ -123,8 +120,6 @@ const checkTaxIdExists = async (taxId) => {
 const registerCompany = async (payload) => {
   const email = payload.email.toLowerCase().trim();
 
-  console.log('[CompanyService] Iniciando registro de empresa:', email);
-
   const existingUser = await User.findOne({ where: { email } });
   if (existingUser) {
     throw Object.assign(
@@ -135,12 +130,10 @@ const registerCompany = async (payload) => {
 
   const taxId = validateTaxIdFormat(payload.taxId, payload.country);
   await checkTaxIdExists(taxId);
-  console.log('[CompanyService] RUC validado:', taxId);
 
   const passwordHash = await bcrypt.hash(payload.password, 12);
 
   const result = await sequelize.transaction(async (transaction) => {
-    console.log('[CompanyService] Creando usuario...');
     const user = await User.create(
       {
         email,
@@ -151,9 +144,7 @@ const registerCompany = async (payload) => {
       },
       { transaction },
     );
-    console.log('[CompanyService] Usuario creado:', user.id);
 
-    console.log('[CompanyService] Creando empresa...');
     const company = await Company.create(
       {
         userId: user.id,
@@ -202,7 +193,6 @@ const registerCompany = async (payload) => {
       companyName: result.company.legalName,
       responsibleName: result.company.responsibleName,
     });
-    console.log('[CompanyService] Email de confirmación enviado a:', email);
   } catch (err) {
     console.error('Company registration confirmation email could not be sent:', err.message);
   }
@@ -244,8 +234,6 @@ const verifyEmail = async (token) => {
     where: { id: verificationToken.user.id },
     include: [{ model: Company, as: 'companyProfile' }],
   });
-
-  console.log('[CompanyService] Usuario recargado, isEmailVerified:', user.isEmailVerified);
 
   if (!user.isEmailVerified) {
     console.error('[CompanyService] ERROR: isEmailVerified sigue siendo false después de actualizar');

@@ -21,16 +21,6 @@ const AlertSettings = sequelize.define(
       allowNull: false,
       defaultValue: 'immediate',
     },
-    minCompatibility: {
-      type: DataTypes.INTEGER.UNSIGNED,
-      allowNull: false,
-      defaultValue: 70,
-      field: 'min_compatibility',
-      validate: {
-        min: 0,
-        max: 100,
-      },
-    },
     emailEnabled: {
       type: DataTypes.BOOLEAN,
       allowNull: false,

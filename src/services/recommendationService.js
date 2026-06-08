@@ -1,5 +1,7 @@
 const natural = require('natural');
-const { Resume, Offer, Student } = require('../models');
+const { Resume, Offer, Student, Company } = require('../models');
+
+const COMPATIBILITY_THRESHOLD = 40;
 
 class RecommendationService {
   constructor() {
@@ -121,6 +123,31 @@ class RecommendationService {
   // ==========================================
   // INTEGRANTE 2: Motor de Similitud (Matching)
   // ==========================================
+  
+  /**
+   * Calcula el score de compatibilidad entre un estudiante y una oferta individual
+   * Usa la misma lógica que calculateSimilarityScores para consistencia
+   */
+  async calculateCompatibilityScore(studentId, offer) {
+    try {
+      const studentTextProfile = await this.buildStudentTextProfile(studentId);
+      const offerTextProfile = await this.buildOfferTextProfile(offer);
+
+      const tfidf = new this.TfIdf();
+      tfidf.addDocument(studentTextProfile);
+      tfidf.addDocument(offerTextProfile);
+
+      const studentVector = this.getTfIdfVector(tfidf, 0);
+      const offerVector = this.getTfIdfVector(tfidf, 1);
+      const similarity = this.cosineSimilarity(studentVector, offerVector);
+
+      return Math.round(similarity * 100);
+    } catch (error) {
+      console.error('Error calculando compatibilidad individual:', error);
+      return 0;
+    }
+  }
+
   async calculateSimilarityScores(studentText, offers) {
     const tfidf = new this.TfIdf();
 
@@ -152,9 +179,9 @@ class RecommendationService {
       });
     }
 
-    // Filtrar por umbral de >= 80% y ordenar de mayor a menor score
+    // Filtrar por umbral y ordenar de mayor a menor score
     return results
-      .filter(r => r.matchScore >= 80)
+      .filter(r => r.matchScore >= COMPATIBILITY_THRESHOLD)
       .sort((a, b) => b.matchScore - a.matchScore);
   }
 
@@ -197,7 +224,14 @@ class RecommendationService {
 
       // 2. Traemos las ofertas activas
       const activeOffers = await Offer.findAll({
-        where: { status: 'approved' }
+        where: { status: 'approved' },
+        include: [
+          {
+            model: Company,
+            as: 'company',
+            attributes: ['id', 'legalName', 'tradeName', 'logoUrl'],
+          },
+        ],
       });
 
       if (activeOffers.length === 0) return [];
@@ -213,4 +247,7 @@ class RecommendationService {
   }
 }
 
-module.exports = new RecommendationService();
+const instance = new RecommendationService();
+instance.COMPATIBILITY_THRESHOLD = COMPATIBILITY_THRESHOLD;
+
+module.exports = instance;

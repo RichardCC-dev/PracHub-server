@@ -332,7 +332,7 @@ const sendOfferMatchAlert = async ({
     from: process.env.SMTP_FROM || '"PracHub" <noreply@prachub.pe>',
     to,
     subject,
-    text: `Hola ${firstName}, encontramos una oferta compatible: "${offerTitle}" en ${companyName} con ${compatibilityScore}% de compatibilidad. Ver en: ${appUrl}/offers/${offerId}`,
+    text: `Hola ${firstName}, encontramos una oferta compatible: "${offerTitle}" en ${companyName}. Ver en: ${appUrl}/offers/${offerId}`,
     html: emailBase(`
       ${priorityBadge}
       <h2 style="color:#064E3B;margin-top:0;">¡Hola ${firstName}!</h2>
@@ -340,14 +340,9 @@ const sendOfferMatchAlert = async ({
       <div style="background:#f0fdf4;border:1px solid #bbf7d0;padding:20px;border-radius:12px;margin:16px 0;">
         <p style="margin:0 0 8px 0;font-weight:600;color:#064E3B;font-size:18px;">${offerTitle}</p>
         <p style="margin:0 0 12px 0;color:#047857;">${companyName}</p>
-        <div style="display:flex;align-items:center;gap:8px;">
-          <div style="background:#064E3B;color:#fff;padding:8px 16px;border-radius:20px;font-weight:700;font-size:16px;">
-            ${compatibilityScore}% compatibilidad
-          </div>
-        </div>
       </div>
       <p style="color:#374151;">Esta oferta tiene un alto grado de coincidencia con tus habilidades y experiencia. ¡No dejes pasar esta oportunidad!</p>
-      <a href="${appUrl}/offers" style="display:inline-block;background:#065f46;color:#fff;padding:12px 24px;border-radius:12px;text-decoration:none;font-weight:700;margin-top:8px;">
+      <a href="${appUrl}/offers/${offerId}" style="display:inline-block;background:#065f46;color:#fff;padding:12px 24px;border-radius:12px;text-decoration:none;font-weight:700;margin-top:8px;">
         Ver oferta y postular
       </a>
     `),
@@ -372,10 +367,7 @@ const sendDailyDigest = async ({ to, firstName, offers }) => {
         </div>
         ${item.isFromFollowedCompany ? '<span style="color:#f59e0b;font-size:18px;">★</span>' : ''}
       </div>
-      <div style="display:flex;align-items:center;justify-content:space-between;">
-        <span style="background:#064E3B;color:#fff;padding:4px 12px;border-radius:12px;font-weight:600;font-size:14px;">
-          ${item.compatibilityScore}%
-        </span>
+      <div style="display:flex;align-items:center;justify-content:flex-end;">
         <a href="${appUrl}/offers/${item.offer.id}" style="color:#065f46;text-decoration:none;font-weight:600;font-size:14px;">
           Ver oferta →
         </a>
@@ -421,10 +413,7 @@ const sendWeeklyDigest = async ({ to, firstName, offers }) => {
     <div style="background:#f9fafb;border:1px solid #e5e7eb;padding:16px;border-radius:8px;margin-bottom:12px;">
       <p style="margin:0 0 4px 0;font-weight:600;color:#111827;">${item.offer.title}</p>
       <p style="margin:0 0 8px 0;color:#6b7280;font-size:14px;">${item.offer.company?.legalName || 'Empresa'}</p>
-      <div style="display:flex;align-items:center;gap:8px;">
-        <span style="background:#064E3B;color:#fff;padding:4px 12px;border-radius:12px;font-weight:600;font-size:14px;">
-          ${item.compatibilityScore}%
-        </span>
+      <div style="display:flex;align-items:center;justify-content:flex-end;">
         <a href="${appUrl}/offers/${item.offer.id}" style="color:#065f46;text-decoration:none;font-weight:600;font-size:14px;">
           Ver oferta →
         </a>
