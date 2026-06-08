@@ -1,4 +1,5 @@
 const { GoogleGenerativeAI } = require('@google/generative-ai');
+const logger = require('../utils/logger');
 
 // Inicializa el cliente de Gemini con la API Key
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
@@ -37,7 +38,7 @@ const ensureArray = (historyData) => {
     try {
       return JSON.parse(historyData || '[]');
     } catch (e) {
-      console.error('Error parseando chatHistory en el servidor:', e);
+      logger.error('Error parseando chatHistory en el servidor:', e);
       return [];
     }
   }
@@ -117,7 +118,7 @@ const chatWithGemini = async (chatHistory, simulatedRole, newMessage, career, se
     } catch (err) {
       if (err.status === 429 && retries > 0) {
         const delay = getRetryDelay(err);
-        console.warn(`Gemini 429 - reintentando en ${delay / 1000}s...`);
+        logger.warn(`Gemini 429 - reintentando en ${delay / 1000}s...`);
         await new Promise(resolve => setTimeout(resolve, delay));
         return sendWithRetry(retries - 1);
       }
@@ -198,12 +199,12 @@ Reglas estrictas de evaluación:
       };
     } catch (err) {
       if (err.status === 429 && retries > 0) {
-        console.warn(`Gemini 429 en summary - reintentando en ${delayMs / 1000}s...`);
+        logger.warn(`Gemini 429 en summary - reintentando en ${delayMs / 1000}s...`);
         await new Promise(resolve => setTimeout(resolve, delayMs));
         return tryGenerate(retries - 1, delayMs);
       }
       // Si se agotaron reintentos o es otro error, usamos fallback local
-      console.error('Error en generateSimulationSummary, usando fallback local:', err.message);
+      logger.error('Error en generateSimulationSummary, usando fallback local:', err.message);
       return generateFallbackSummary(chatHistory);
     }
   };

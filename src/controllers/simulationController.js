@@ -1,5 +1,6 @@
 const { Simulation, Student } = require('../models');
 const geminiService = require('../services/geminiService');
+const logger = require('../utils/logger');
 
 exports.startSimulation = async (req, res) => {
   try {
@@ -28,7 +29,7 @@ exports.startSimulation = async (req, res) => {
 
     res.status(201).json({ simulation });
   } catch (error) {
-    console.error('Error starting simulation:', error);
+    logger.error('Error starting simulation:', error);
     res.status(500).json({ error: 'Error al iniciar la simulación' });
   }
 };
@@ -75,7 +76,7 @@ exports.sendMessage = async (req, res) => {
 
     res.json({ simulation, aiResponse: aiMsg });
   } catch (error) {
-    console.error('Error sending message [status=%s]:', error.status || 'N/A', error.message || error);
+    logger.error('Error sending message [status=%s]:', error.status || 'N/A', error.message || error);
     if (error.status === 429) {
       // Guardar el mensaje del usuario y responder con mensaje de espera
       // para no perder el turno del candidato
@@ -135,7 +136,7 @@ exports.endSimulation = async (req, res) => {
 
     res.json({ simulation });
   } catch (error) {
-    console.error('Error ending simulation:', error);
+    logger.error('Error ending simulation:', error);
     res.status(500).json({ error: 'Error al finalizar la simulación' });
   }
 };
@@ -157,7 +158,7 @@ exports.getSimulationsHistory = async (req, res) => {
 
     res.json({ simulations });
   } catch (error) {
-    console.error('Error fetching simulations history:', error);
+    logger.error('Error fetching simulations history:', error);
     res.status(500).json({ error: 'Error al obtener historial' });
   }
 };
@@ -250,7 +251,7 @@ exports.getSimulationStats = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Error fetching simulation stats:', error);
+    logger.error('Error fetching simulation stats:', error);
     res.status(500).json({ error: 'Error al obtener estadísticas de progreso' });
   }
 };
@@ -272,7 +273,7 @@ exports.getSimulationDetails = async (req, res) => {
 
     res.json({ simulation });
   } catch (error) {
-    console.error('Error fetching simulation details:', error);
+    logger.error('Error fetching simulation details:', error);
     res.status(500).json({ error: 'Error al obtener detalles de la simulación' });
   }
 };

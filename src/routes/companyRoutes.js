@@ -5,6 +5,8 @@ const validateRequest = require('../middlewares/validateRequest');
 const authenticate = require('../middlewares/authMiddleware');
 const authorize = require('../middlewares/authorize');
 
+const { companyRegisterLimiter } = require('../middlewares/rateLimit');
+
 const router = express.Router();
 
 const VALID_INDUSTRIES = [
@@ -86,6 +88,7 @@ const VALID_COUNTRIES = ['Perú', 'Colombia', 'México', 'Chile', 'Argentina', '
  */
 router.post(
   '/register',
+  companyRegisterLimiter,
   [
     body('email')
       .isEmail()

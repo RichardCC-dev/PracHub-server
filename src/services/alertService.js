@@ -12,6 +12,7 @@ const {
 } = require('../models');
 const recommendationService = require('./recommendationService');
 const emailService = require('./emailService');
+const logger = require('../utils/logger');
 
 const THRESHOLD_COMPATIBILITY = recommendationService.COMPATIBILITY_THRESHOLD;
 
@@ -137,7 +138,7 @@ const alertService = {
         });
         emailSent = true;
       } catch (error) {
-        console.error('Error enviando email de alerta:', error);
+        logger.error('Error enviando email de alerta:', error);
       }
     }
 
@@ -164,7 +165,7 @@ const alertService = {
         });
         notificationSent = true;
       } catch (error) {
-        console.error('Error creando notificación en plataforma:', error);
+        logger.error('Error creando notificación en plataforma:', error);
       }
     }
 
@@ -248,14 +249,14 @@ const alertService = {
             }
           }
         } catch (studentError) {
-          console.error(`Error procesando alerta para estudiante ${student.id}:`, studentError);
+          logger.error(`Error procesando alerta para estudiante ${student.id}:`, studentError);
           results.errors.push({ studentId: student.id, error: studentError.message });
         }
       }
 
       return results;
     } catch (error) {
-      console.error('Error procesando nueva oferta para alertas:', error);
+      logger.error('Error procesando nueva oferta para alertas:', error);
       throw error;
     }
   },
@@ -318,14 +319,14 @@ const alertService = {
 
           results.emailsSent++;
         } catch (error) {
-          console.error(`Error generando digest diario para estudiante ${setting.studentId}:`, error);
+          logger.error(`Error generando digest diario para estudiante ${setting.studentId}:`, error);
           results.errors.push({ studentId: setting.studentId, error: error.message });
         }
       }
 
       return results;
     } catch (error) {
-      console.error('Error generando digest diario:', error);
+      logger.error('Error generando digest diario:', error);
       throw error;
     }
   },
@@ -405,14 +406,14 @@ const alertService = {
 
           results.emailsSent++;
         } catch (error) {
-          console.error(`Error generando digest semanal para estudiante ${setting.studentId}:`, error);
+          logger.error(`Error generando digest semanal para estudiante ${setting.studentId}:`, error);
           results.errors.push({ studentId: setting.studentId, error: error.message });
         }
       }
 
       return results;
     } catch (error) {
-      console.error('Error generando digest semanal:', error);
+      logger.error('Error generando digest semanal:', error);
       throw error;
     }
   },

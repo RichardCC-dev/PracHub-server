@@ -1,4 +1,5 @@
 const { Sequelize } = require('sequelize');
+const logger = require('../utils/logger');
 
 const sequelize = new Sequelize(
   process.env.DB_NAME || 'prachub',
@@ -8,7 +9,7 @@ const sequelize = new Sequelize(
     host: process.env.DB_HOST || 'localhost',
     port: process.env.DB_PORT || 3306,
     dialect: 'mysql',
-    logging: process.env.NODE_ENV === 'development' ? console.log : false,
+    logging: process.env.NODE_ENV === 'development' ? (sql) => logger.info(sql) : false,
     define: {
       underscored: true,
       timestamps: true,

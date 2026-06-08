@@ -3,6 +3,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { User, Company, EmailVerificationToken, sequelize } = require('../models');
 const emailService = require('./emailService');
+const logger = require('../utils/logger');
 
 const EMAIL_VERIFICATION_EXPIRATION_MINUTES = 30;
 
@@ -61,14 +62,14 @@ const sendEmailVerification = async ({ user, email, companyName }) => {
       expiresAt,
     });
   } catch (dbError) {
-    console.error('[CompanyService] Error al crear token:', dbError.message);
+    logger.error('[CompanyService] Error al crear token:', dbError.message);
     throw dbError;
   }
 
   const appUrl = process.env.APP_URL || process.env.CLIENT_URL || 'http://localhost:5173';
   const verifyUrl = `${appUrl}/verify-email?token=${token}`;
 
-  console.log('[CompanyService] Enviando email de verificación a:', email);
+  logger.info('[CompanyService] Enviando email de verificación a:', email);
 
   try {
     await emailService.sendCompanyEmailVerificationEmail({
@@ -76,9 +77,9 @@ const sendEmailVerification = async ({ user, email, companyName }) => {
       verifyUrl,
       companyName,
     });
-    console.log('[CompanyService] Email de verificación enviado exitosamente');
+    logger.info('[CompanyService] Email de verificación enviado exitosamente');
   } catch (emailError) {
-    console.error('[CompanyService] Error al enviar email:', emailError.message);
+    logger.error('[CompanyService] Error al enviar email:', emailError.message);
     throw emailError;
   }
 };
@@ -168,12 +169,12 @@ const registerCompany = async (payload) => {
       },
       { transaction },
     );
-    console.log('[CompanyService] Empresa creada:', company.id);
+    logger.info('[CompanyService] Empresa creada:', company.id);
 
     return { user, company, token: signToken(user) };
   });
 
-  console.log('[CompanyService] Transacción completada, enviando emails...');
+  logger.info('[CompanyService] Transacción completada, enviando emails...');
 
   // Enviar emails fuera de la transacción para evitar deadlocks
   try {
@@ -182,9 +183,9 @@ const registerCompany = async (payload) => {
       email,
       companyName: result.company.legalName,
     });
-    console.log('[CompanyService] Email de verificación enviado a:', email);
+    logger.info('[CompanyService] Email de verificación enviado a:', email);
   } catch (err) {
-    console.error('Company verification email could not be sent:', err.message);
+    logger.error('Company verification email could not be sent:', err.message);
   }
 
   try {
@@ -194,7 +195,7 @@ const registerCompany = async (payload) => {
       responsibleName: result.company.responsibleName,
     });
   } catch (err) {
-    console.error('Company registration confirmation email could not be sent:', err.message);
+    logger.error('Company registration confirmation email could not be sent:', err.message);
   }
 
   return {
@@ -236,7 +237,7 @@ const verifyEmail = async (token) => {
   });
 
   if (!user.isEmailVerified) {
-    console.error('[CompanyService] ERROR: isEmailVerified sigue siendo false después de actualizar');
+    logger.error('[CompanyService] ERROR: isEmailVerified sigue siendo false después de actualizar');
   }
 
   emailService.sendCompanyWelcomeEmail({
@@ -244,7 +245,7 @@ const verifyEmail = async (token) => {
     companyName: user.companyProfile?.legalName || 'su empresa',
     responsibleName: user.companyProfile?.responsibleName || 'responsable',
   }).catch((err) => {
-    console.error('Company welcome email could not be sent:', err.message);
+    logger.error('Company welcome email could not be sent:', err.message);
   });
 
   return {

@@ -1,4 +1,5 @@
 const recommendationService = require('../services/recommendationService');
+const logger = require('../utils/logger');
 
 const getRecommendations = async (req, res) => {
   try {
@@ -18,7 +19,7 @@ const getRecommendations = async (req, res) => {
     if (error.message === 'El estudiante no tiene un CV registrado') {
       return res.status(400).json({ error: error.message });
     }
-    console.error('Error in getRecommendations:', error);
+    logger.error('Error in getRecommendations:', error);
     res.status(500).json({ error: 'Error interno al generar recomendaciones' });
   }
 };

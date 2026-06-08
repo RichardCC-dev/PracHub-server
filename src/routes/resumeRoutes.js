@@ -3,6 +3,7 @@ const { body } = require('express-validator');
 const authMiddleware = require('../middlewares/authMiddleware');
 const validateRequest = require('../middlewares/validateRequest');
 const resumeController = require('../controllers/resumeController');
+const { aiImproveLimiter } = require('../middlewares/rateLimit');
 
 const router = Router();
 
@@ -130,7 +131,7 @@ router.put(
  *       200:
  *         description: Sugerencia generada
  */
-router.post('/improve/:section/:field', resumeController.improveField);
+router.post('/improve/:section/:field', aiImproveLimiter, resumeController.improveField);
 
 /**
  * @swagger
@@ -161,7 +162,7 @@ router.post('/improve/:section/:field', resumeController.improveField);
  *       200:
  *         description: Sugerencia generada
  */
-router.post('/improve-section/:section', resumeController.improveFullSection);
+router.post('/improve-section/:section', aiImproveLimiter, resumeController.improveFullSection);
 
 /**
  * @swagger

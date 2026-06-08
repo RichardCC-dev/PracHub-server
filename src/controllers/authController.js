@@ -1,6 +1,7 @@
 const authService = require('../services/authService');
 const emailService = require('../services/emailService');
 const { User } = require('../models');
+const logger = require('../utils/logger');
 
 const login = async (req, res, next) => {
   try {
@@ -15,7 +16,7 @@ const login = async (req, res, next) => {
           status: 'Éxito',
         });
       } catch (alertErr) {
-        console.error('[AdminLoginAlert] Error enviando alerta:', alertErr.message);
+        logger.error('[AdminLoginAlert] Error enviando alerta:', alertErr.message);
       }
     }
 
@@ -30,7 +31,7 @@ const login = async (req, res, next) => {
           status: 'Bloqueado',
         });
       } catch (alertErr) {
-        console.error('[AdminLoginAlert] Error enviando alerta:', alertErr.message);
+        logger.error('[AdminLoginAlert] Error enviando alerta:', alertErr.message);
       }
     }
     return next(error);

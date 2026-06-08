@@ -1,6 +1,7 @@
 const { Offer, Company, User } = require('../models');
 const { Op } = require('sequelize');
 const alertService = require('./alertService');
+const logger = require('../utils/logger');
 
 const getCompanies = async (filters = {}) => {
   const where = {};
@@ -212,11 +213,11 @@ const approveOffer = async (offerId, adminId) => {
   // Usamos process.nextTick para no retrasar la respuesta HTTP
   process.nextTick(async () => {
     try {
-      console.log(`[AlertService] Procesando alertas para oferta aprobada #${offer.id}`);
+      logger.info(`[AlertService] Procesando alertas para oferta aprobada #${offer.id}`);
       const alertResults = await alertService.processNewOffer(offer);
-      console.log(`[AlertService] Oferta #${offer.id}: ${alertResults.alertsSent} alertas enviadas, ${alertResults.totalProcessed} estudiantes procesados`);
+      logger.info(`[AlertService] Oferta #${offer.id}: ${alertResults.alertsSent} alertas enviadas, ${alertResults.totalProcessed} estudiantes procesados`);
     } catch (alertError) {
-      console.error(`[AlertService] Error procesando alertas para oferta #${offer.id}:`, alertError);
+      logger.error(`[AlertService] Error procesando alertas para oferta #${offer.id}:`, alertError);
     }
   });
 

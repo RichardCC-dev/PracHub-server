@@ -1,4 +1,5 @@
 const nodemailer = require('nodemailer');
+const logger = require('../utils/logger');
 
 let cachedTransporter = null;
 
@@ -13,7 +14,7 @@ const getTransporter = async () => {
       secure: false,
       auth: { user: testAccount.user, pass: testAccount.pass },
     });
-    console.log(`[EmailService] Cuenta Ethereal: ${testAccount.user}`);
+    logger.info(`[EmailService] Cuenta Ethereal: ${testAccount.user}`);
     return cachedTransporter;
   }
 
@@ -29,7 +30,7 @@ const getTransporter = async () => {
 const logPreview = (info) => {
   if (process.env.NODE_ENV !== 'production') {
     const url = nodemailer.getTestMessageUrl(info);
-    if (url) console.log(`[EmailService] Vista previa: ${url}`);
+    if (url) logger.info(`[EmailService] Vista previa: ${url}`);
   }
 };
 

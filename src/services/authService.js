@@ -4,6 +4,7 @@ const jwt = require('jsonwebtoken');
 const { User, Student, Company, PasswordResetToken, EmailVerificationToken, sequelize } = require('../models');
 const { getUniversityByEmail } = require('../utils/universityDomains');
 const emailService = require('./emailService');
+const logger = require('../utils/logger');
 
 const PASSWORD_RESET_EXPIRATION_MINUTES = 30;
 const EMAIL_VERIFICATION_EXPIRATION_MINUTES = 30;
@@ -108,7 +109,7 @@ const registerStudent = async (payload) => {
     try {
       await sendEmailVerification({ user, email });
     } catch (err) {
-      console.error('Email verification could not be sent:', err.message);
+      logger.error('Email verification could not be sent:', err.message);
     }
 
     return result;
@@ -240,7 +241,7 @@ const requestPasswordReset = async (payload) => {
   try {
     await emailService.sendPasswordResetEmail({ email, resetUrl });
   } catch (error) {
-    console.error('Password reset email could not be sent:', error.message);
+    logger.error('Password reset email could not be sent:', error.message);
   }
 
   return response;
@@ -311,7 +312,7 @@ const verifyEmail = async (token) => {
     where: { id: verificationToken.user.id },
   });
 
-  console.log('[AuthService] Usuario recargado, isEmailVerified:', user.isEmailVerified);
+  logger.info('[AuthService] Usuario recargado, isEmailVerified:', user.isEmailVerified);
 
   const result = {
     message: 'Correo verificado correctamente. Ya puedes usar tu cuenta.',
@@ -334,7 +335,7 @@ const verifyEmail = async (token) => {
       email: user.email,
       firstName: student?.firstName || 'estudiante',
     }).catch((err) => {
-      console.error('Welcome email could not be sent:', err.message);
+      logger.error('Welcome email could not be sent:', err.message);
     });
   }
 
@@ -348,7 +349,7 @@ const verifyEmail = async (token) => {
       companyName: company?.legalName || 'su empresa',
       responsibleName: company?.responsibleName || 'responsable',
     }).catch((err) => {
-      console.error('Company welcome email could not be sent:', err.message);
+      logger.error('Company welcome email could not be sent:', err.message);
     });
   }
 

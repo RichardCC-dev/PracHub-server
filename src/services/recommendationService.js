@@ -1,5 +1,6 @@
 const natural = require('natural');
 const { Resume, Offer, Student, Company } = require('../models');
+const logger = require('../utils/logger');
 
 const COMPATIBILITY_THRESHOLD = 40;
 
@@ -143,7 +144,7 @@ class RecommendationService {
 
       return Math.round(similarity * 100);
     } catch (error) {
-      console.error('Error calculando compatibilidad individual:', error);
+      logger.error('Error calculando compatibilidad individual:', error);
       return 0;
     }
   }
@@ -241,7 +242,7 @@ class RecommendationService {
 
       return recommendations;
     } catch (error) {
-      console.error('Error en getRecommendedOffers:', error);
+      logger.error('Error en getRecommendedOffers:', error);
       throw error;
     }
   }

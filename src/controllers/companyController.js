@@ -1,4 +1,5 @@
 const companyService = require('../services/companyService');
+const logger = require('../utils/logger');
 
 const registerCompany = async (req, res, next) => {
   try {
@@ -13,14 +14,14 @@ const registerCompany = async (req, res, next) => {
 };
 
 const verifyEmail = async (req, res, next) => {
-  console.log('[CompanyController] verifyEmail llamado con token:', req.params.token);
+  logger.info('[CompanyController] verifyEmail llamado con token:', req.params.token);
   try {
     const { token } = req.params;
     const result = await companyService.verifyEmail(token);
-    console.log('[CompanyController] verifyEmail exitoso');
+    logger.info('[CompanyController] verifyEmail exitoso');
     return res.status(200).json(result);
   } catch (error) {
-    console.error('[CompanyController] verifyEmail error:', error.message);
+    logger.error('[CompanyController] verifyEmail error:', error.message);
     return next(error);
   }
 };

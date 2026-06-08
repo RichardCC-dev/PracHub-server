@@ -1,5 +1,6 @@
 const adminService = require('../services/adminService');
 const emailService = require('../services/emailService');
+const logger = require('../utils/logger');
 
 const getCompanies = async (req, res, next) => {
   try {
@@ -31,7 +32,7 @@ const enableCompanyPublishing = async (req, res, next) => {
           companyName: result.company.legalName || result.company.tradeName,
         });
       } catch (emailError) {
-        console.error('Error al enviar notificación de habilitación:', emailError);
+        logger.error('Error al enviar notificación de habilitación:', emailError);
       }
     }
 
@@ -135,7 +136,7 @@ const approveOffer = async (req, res, next) => {
           offerId: result.offer.id,
         });
       } catch (emailError) {
-        console.error('Error al enviar notificación de aprobación:', emailError);
+        logger.error('Error al enviar notificación de aprobación:', emailError);
       }
     }
 
@@ -172,7 +173,7 @@ const rejectOffer = async (req, res, next) => {
           rejectionReason: result.offer.rejectionReason,
         });
       } catch (emailError) {
-        console.error('Error al enviar notificación de rechazo:', emailError);
+        logger.error('Error al enviar notificación de rechazo:', emailError);
       }
     }
 

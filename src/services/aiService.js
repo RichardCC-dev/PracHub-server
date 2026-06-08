@@ -1,4 +1,5 @@
 const { GoogleGenerativeAI } = require('@google/generative-ai');
+const logger = require('../utils/logger');
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
 
@@ -17,7 +18,7 @@ ${content}`;
 
     return improved.trim();
   } catch (error) {
-    console.error('AI service error:', error.message);
+    logger.error('AI service error:', error.message);
     throw new Error('No se pudo generar la sugerencia en este momento.');
   }
 };
@@ -84,7 +85,7 @@ ${dataText}`;
       throw new Error('La IA no devolvió un formato válido. Intenta de nuevo.');
     }
   } catch (error) {
-    console.error('AI service error:', error.message);
+    logger.error('AI service error:', error.message);
     throw new Error('No se pudo generar la sugerencia en este momento.');
   }
 };
