@@ -1,11 +1,10 @@
-const { GoogleGenerativeAI } = require('@google/generative-ai');
+const { genAI, GEMINI_MODELS } = require('../config/geminiClient');
 const logger = require('../utils/logger');
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
 
 const improveText = async ({ section, field, content }) => {
   try {
-    const model = genAI.getGenerativeModel({ model: 'gemini-flash-latest' });
+    const model = genAI.getGenerativeModel({ model: GEMINI_MODELS.FLASH });
 
     const prompt = `Eres un experto en redacción de CVs para estudiantes universitarios. Mejora el siguiente texto para la sección "${section}" y campo "${field}". Devuelve SOLO el texto mejorado, sin explicaciones ni formato adicional.
 
@@ -25,7 +24,7 @@ ${content}`;
 
 const improveSection = async ({ section, data }) => {
   try {
-    const model = genAI.getGenerativeModel({ model: 'gemini-flash-latest' });
+    const model = genAI.getGenerativeModel({ model: GEMINI_MODELS.FLASH });
 
     let dataText = '';
     

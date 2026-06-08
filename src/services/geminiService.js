@@ -1,8 +1,6 @@
-const { GoogleGenerativeAI } = require('@google/generative-ai');
+const { genAI, GEMINI_MODELS } = require('../config/geminiClient');
 const logger = require('../utils/logger');
 
-// Inicializa el cliente de Gemini con la API Key
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 const getSystemPrompt = (role, career, sector) => {
   const contextInfo = career ? `El candidato estudia ${career}` : 'El candidato es universitario';
@@ -46,7 +44,7 @@ const ensureArray = (historyData) => {
 };
 
 const chatWithGemini = async (chatHistory, simulatedRole, newMessage, career, sector) => {
-  const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+  const model = genAI.getGenerativeModel({ model: GEMINI_MODELS.FLASH_2_5 });
   const safeChatHistory = ensureArray(chatHistory);
 
   // Filtramos solo mensajes con contenido real (excluye system prompt y vacíos)
@@ -152,7 +150,7 @@ const generateFallbackSummary = (chatHistory) => {
 };
 
 const generateSimulationSummary = async (chatHistory) => {
-  const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+  const model = genAI.getGenerativeModel({ model: GEMINI_MODELS.FLASH_2_5 });
   const safeChatHistory = ensureArray(chatHistory);
   
   const formattedHistory = safeChatHistory

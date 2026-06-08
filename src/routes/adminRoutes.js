@@ -1,7 +1,7 @@
 const express = require('express');
 const { body } = require('express-validator');
 const authenticate = require('../middlewares/authMiddleware');
-const authorizeAdmin = require('../middlewares/authorizeAdmin');
+const authorize = require('../middlewares/authorize');
 const validateRequest = require('../middlewares/validateRequest');
 const adminController = require('../controllers/adminController');
 
@@ -9,7 +9,7 @@ const router = express.Router();
 
 // Todas las rutas requieren autenticación y rol de admin
 router.use(authenticate);
-router.use(authorizeAdmin);
+router.use(authorize('admin'));
 
 /**
  * @swagger

@@ -1,8 +1,7 @@
-const { GoogleGenerativeAI } = require('@google/generative-ai');
+const { genAI, GEMINI_MODELS } = require('../config/geminiClient');
 const { Resume, Offer, CVAnalysis, Student, Company } = require('../models');
 const logger = require('../utils/logger');
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
 
 const JSON_FIELDS = ['profile', 'personal', 'education', 'certifications', 'experience', 'skills', 'languages', 'projects'];
 
@@ -139,7 +138,7 @@ Carreras afines: ${offer.careerTags ? JSON.stringify(offer.careerTags) : 'No esp
 };
 
 const analyzeCVWithAI = async (resume, offer = null, company = null) => {
-  const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash-lite' });
+  const model = genAI.getGenerativeModel({ model: GEMINI_MODELS.FLASH_LITE });
 
   const resumeText = formatResumeForAnalysis(resume);
   const offerContext = formatOfferForContext(offer, company);

@@ -1,10 +1,26 @@
+# ── Dependencias ──────────────────────────────────────────────────────────────
 node_modules/
-.env
 
-# Uploaded files (logos)
+# ── Variables de entorno ──────────────────────────────────────────────────────
+.env
+.env.local
+.env.*.local
+
+# ── Archivos subidos por usuarios ─────────────────────────────────────────────
 public/uploads/
 
-# Development/Test scripts
+# ── Logs ──────────────────────────────────────────────────────────────────────
+logs/
+*.log
+
+# ── Cobertura de tests ────────────────────────────────────────────────────────
+coverage/
+.nyc_output/
+
+# ── Build ────────────────────────────────────────────────────────────────────
+dist/
+
+# ── Scripts de desarrollo / diagnóstico (no deben ir a producción) ────────────
 scripts/test*.js
 scripts/cleanup*.js
 scripts/getStudentCV.js

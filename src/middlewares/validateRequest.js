@@ -5,8 +5,8 @@ const validateRequest = (req, res, next) => {
   const errors = validationResult(req);
 
   if (!errors.isEmpty()) {
-    logger.info('[ValidateRequest] Body recibido:', req.body);
-    logger.info('[ValidateRequest] Errores:', errors.array());
+    logger.debug('[ValidateRequest] Body recibido:', req.body);
+    logger.debug('[ValidateRequest] Errores:', errors.array());
     return res.status(400).json({
       message: 'Datos de entrada inválidos.',
       errors: errors.array().map((error) => ({
