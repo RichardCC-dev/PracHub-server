@@ -297,7 +297,7 @@ const applicationService = {
               attributes: ['email'],
             },
           ],
-          attributes: ['id', 'firstName', 'lastName', 'university', 'career', 'profilePictureUrl', 'phoneNumber'],
+          attributes: ['id', 'userId', 'firstName', 'lastName', 'university', 'career', 'profilePictureUrl', 'phoneNumber'],
         },
         {
           model: Resume,

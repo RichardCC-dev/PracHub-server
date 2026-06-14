@@ -14,8 +14,9 @@ const CVAnalysis = require('./CVAnalysis');
 const AlertSettings = require('./AlertSettings');
 const SavedCompany = require('./SavedCompany');
 const AlertHistory = require('./AlertHistory');
+const DirectMessage = require('./DirectMessage');
 
-// Validación de carga de todos los modelos (15 en total)
+// Validación de carga de todos los modelos (16 en total)
 [
   { name: 'User', model: User },
   { name: 'Student', model: Student },
@@ -31,7 +32,8 @@ const AlertHistory = require('./AlertHistory');
   { name: 'Simulation', model: Simulation },
   { name: 'AlertSettings', model: AlertSettings },
   { name: 'SavedCompany', model: SavedCompany },
-  { name: 'AlertHistory', model: AlertHistory }
+  { name: 'AlertHistory', model: AlertHistory },
+  { name: 'DirectMessage', model: DirectMessage }
 ].forEach(item => {
   if (!item.model || !item.model.prototype || !item.model.prototype.constructor.name) {
     throw new Error(`¡El modelo ${item.name} no se cargó correctamente! Revisa el archivo ${item.name}.js`);
@@ -310,6 +312,34 @@ AlertHistory.belongsTo(Offer, {
   as: 'offer',
 });
 
+
+// ==========================================
+// Relaciones de Mensajes Directos (HU-24, HU-25, HU-26)
+// ==========================================
+
+// --- Relaciones de DirectMessage ---
+User.hasMany(DirectMessage, {
+  foreignKey: 'senderId',
+  as: 'sentMessages',
+  onDelete: 'CASCADE',
+});
+
+DirectMessage.belongsTo(User, {
+  foreignKey: 'senderId',
+  as: 'sender',
+});
+
+User.hasMany(DirectMessage, {
+  foreignKey: 'receiverId',
+  as: 'receivedMessages',
+  onDelete: 'CASCADE',
+});
+
+DirectMessage.belongsTo(User, {
+  foreignKey: 'receiverId',
+  as: 'receiver',
+});
+
 module.exports = {
   sequelize,
   User,
@@ -327,4 +357,5 @@ module.exports = {
   AlertSettings,
   SavedCompany,
   AlertHistory,
+  DirectMessage,
 };

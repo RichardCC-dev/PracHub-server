@@ -16,6 +16,7 @@ const cvAnalysisRoutes = require('./routes/cvAnalysisRoutes');
 const recommendationRoutes = require('./routes/recommendationRoutes');
 const alertRoutes = require('./routes/alertRoutes');
 const savedCompanyRoutes = require('./routes/savedCompanyRoutes');
+const messageRoutes = require('./routes/messageRoutes');
 const errorHandler = require('./middlewares/errorHandler');
 const { globalApiLimiter } = require('./middlewares/rateLimit');
 
@@ -107,6 +108,7 @@ app.use('/api/notifications', notificationRoutes);
 app.use('/api/cv-analysis', cvAnalysisRoutes);
 app.use('/api/alerts', alertRoutes);
 app.use('/api/saved-companies', savedCompanyRoutes);
+app.use('/api/messages', messageRoutes);
 
 // Configuración de Swagger
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpecs, { explorer: true }));

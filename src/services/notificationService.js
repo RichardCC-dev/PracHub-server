@@ -62,6 +62,26 @@ const notificationService = {
       where: { userId, isRead: false },
     });
   },
+
+  /**
+   * Crea una notificacion de mensaje recibido (HU-24, HU-25, HU-26).
+   * @param {number} receiverUserId - ID del usuario que recibe la notificacion
+   * @param {string} senderName - Nombre visible del remitente
+   * @param {string} messagePreview - Primeros caracteres del mensaje
+   */
+  async createMessageNotification(receiverUserId, senderName, messagePreview) {
+    const preview = messagePreview.length > 80
+      ? messagePreview.substring(0, 80) + '...'
+      : messagePreview;
+
+    await Notification.create({
+      userId: receiverUserId,
+      type: 'message_received',
+      title: `Nuevo mensaje de ${senderName}`,
+      message: preview,
+      isRead: false,
+    });
+  },
 };
 
 module.exports = notificationService;
