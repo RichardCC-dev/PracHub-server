@@ -145,6 +145,30 @@ const messageController = {
     query('limit').optional().isInt({ min: 1, max: 100 }),
     query('offset').optional().isInt({ min: 0 }),
   ],
+
+  /**
+   * GET /api/messages/users/search?q=...
+   * Buscar usuarios para iniciar conversaciones (HU-26).
+   */
+  async searchUsers(req, res, next) {
+    try {
+      const currentUserId = req.user.id;
+      const { q = '', limit = 10 } = req.query;
+      const users = await messageService.searchUsers(currentUserId, q, parseInt(limit));
+      res.json({ success: true, data: users });
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  validateSearchQuery: [
+    query('q')
+      .optional()
+      .isString()
+      .isLength({ max: 100 })
+      .withMessage('La busqueda no puede superar 100 caracteres.'),
+    query('limit').optional().isInt({ min: 1, max: 20 }),
+  ],
 };
 
 module.exports = messageController;

@@ -303,4 +303,52 @@ router.patch(
  *           type: integer
  */
 
+
+/**
+ * @swagger
+ * /messages/users/search:
+ *   get:
+ *     summary: Buscar usuarios para iniciar conversaciones (HU-26)
+ *     description: >
+ *       Busca usuarios (estudiantes y empresas) por nombre o email.
+ *       Permite a reclutadores encontrar candidatos para contactarlos (HU-24)
+ *       y a estudiantes encontrar contactos de su red (HU-26).
+ *     tags: [Messages]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: q
+ *         schema:
+ *           type: string
+ *           maxLength: 100
+ *         description: Texto de busqueda (nombre o email, min. 2 caracteres)
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 10
+ *           maximum: 20
+ *     responses:
+ *       200:
+ *         description: Lista de participantes encontrados
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Participant'
+ */
+router.get(
+  '/users/search',
+  messageController.validateSearchQuery,
+  validateRequest,
+  messageController.searchUsers
+);
+
 module.exports = router;

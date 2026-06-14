@@ -9,7 +9,6 @@ const PUBLIC_USER_ATTRS = ['id', 'email', 'role'];
 
 /**
  * Construye los atributos de include para obtener el perfil visible de un User.
- * Dependiendo del rol devuelve el nombre desde studentProfile o companyProfile.
  */
 const userInclude = (alias) => ({
   model: User,
@@ -79,7 +78,6 @@ const messageService = {
    * agrupa por el otro participante y muestra el último mensaje + unread count.
    */
   async getConversations(userId) {
-    // Obtener todos los mensajes donde el usuario es sender o receiver
     const messages = await DirectMessage.findAll({
       where: {
         [Op.or]: [{ senderId: userId }, { receiverId: userId }],
@@ -91,7 +89,6 @@ const messageService = {
       order: [['created_at', 'DESC']],
     });
 
-    // Agrupar por conversación (par de usuarios únicos)
     const conversationMap = new Map();
 
     messages.forEach((msg) => {
@@ -112,7 +109,6 @@ const messageService = {
         });
       }
 
-      // Contar mensajes no leídos recibidos
       if (msg.receiverId === userId && !msg.isRead) {
         const conv = conversationMap.get(otherId);
         conv.unreadCount += 1;
@@ -124,13 +120,11 @@ const messageService = {
   },
 
   /**
-   * Devuelve el historial completo de mensajes entre userId y otherUserId,
-   * ordenados cronológicamente.
+   * Devuelve el historial completo de mensajes entre userId y otherUserId.
    */
   async getConversation(userId, otherUserId, options = {}) {
     const { limit = 50, offset = 0 } = options;
 
-    // Verificar que el otro usuario exista
     const otherUser = await User.findByPk(otherUserId, {
       attributes: PUBLIC_USER_ATTRS,
       include: [
@@ -196,6 +190,55 @@ const messageService = {
     return await DirectMessage.count({
       where: { receiverId: userId, isRead: false },
     });
+  },
+
+  /**
+   * Busca usuarios del sistema por nombre o email para iniciar conversaciones (HU-26).
+   * Solo devuelve usuarios con rol student o company (no admin).
+   * Excluye al propio usuario.
+   * @param {number} currentUserId - ID del usuario que busca
+   * @param {string} query - Texto a buscar (mín. 2 caracteres)
+   * @param {number} limit - Máximo de resultados
+   */
+  async searchUsers(currentUserId, query, limit = 10) {
+    if (!query || query.trim().length < 2) {
+      return [];
+    }
+
+    const users = await User.findAll({
+      where: {
+        id: { [Op.ne]: currentUserId },
+        role: { [Op.in]: ['student', 'company'] },
+      },
+      attributes: PUBLIC_USER_ATTRS,
+      include: [
+        {
+          model: Student,
+          as: 'studentProfile',
+          attributes: ['firstName', 'lastName', 'profilePictureUrl', 'career'],
+          required: false,
+        },
+        {
+          model: Company,
+          as: 'companyProfile',
+          attributes: ['legalName', 'tradeName', 'logoUrl'],
+          required: false,
+        },
+      ],
+      limit,
+    });
+
+    const q = query.trim().toLowerCase();
+    return users
+      .filter((u) => {
+        const s = u.studentProfile;
+        const c = u.companyProfile;
+        const name = s
+          ? `${s.firstName} ${s.lastName}`.toLowerCase()
+          : (c?.tradeName || c?.legalName || '').toLowerCase();
+        return name.includes(q) || u.email.toLowerCase().includes(q);
+      })
+      .map(formatParticipant);
   },
 };
 

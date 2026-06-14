@@ -229,3 +229,43 @@ describe('PATCH /api/messages/conversation/:userId/read — Marcar como leídos'
     expect(res.body.updated).toBe(2);
   });
 });
+
+
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe('GET /api/messages/users/search — Busqueda de usuarios (HU-26)', () => {
+  beforeEach(() => jest.clearAllMocks());
+
+  it('401 — sin token', async () => {
+    const res = await request(app).get('/api/messages/users/search?q=Juan');
+    expect(res.status).toBe(401);
+  });
+
+  it('200 — devuelve array vacio para query muy corto', async () => {
+    User.findByPk.mockResolvedValueOnce(mockStudentUser);
+    const res = await request(app)
+      .get('/api/messages/users/search?q=J')
+      .set('Authorization', `Bearer ${studentToken}`);
+    expect(res.status).toBe(200);
+    expect(Array.isArray(res.body.data)).toBe(true);
+  });
+
+  it('200 — devuelve resultados para query valido', async () => {
+    User.findByPk.mockResolvedValueOnce(mockStudentUser);
+    User.findAll.mockResolvedValueOnce([
+      {
+        id: 5,
+        email: 'maria@unmsm.edu.pe',
+        role: 'student',
+        studentProfile: { firstName: 'Maria', lastName: 'Garcia', profilePictureUrl: null },
+        companyProfile: null,
+      },
+    ]);
+    const res = await request(app)
+      .get('/api/messages/users/search?q=Maria')
+      .set('Authorization', `Bearer ${studentToken}`);
+    expect(res.status).toBe(200);
+    expect(res.body.success).toBe(true);
+  });
+});
+
