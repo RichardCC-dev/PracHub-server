@@ -87,15 +87,16 @@ describe('GET /api/offers — Listar ofertas públicas (sin auth)', () => {
 
 // ─────────────────────────────────────────────────────────────────────────────
 
-describe('GET /api/offers/:offerId — Detalle de oferta (requiere auth empresa)', () => {
+describe('GET /api/offers/:offerId — Detalle público de oferta (sin auth)', () => {
   beforeEach(() => {
     // authMiddleware llama a User.findByPk
     User.findByPk.mockResolvedValue(mockCompanyUser);
   });
 
-  it('401 — sin token', async () => {
+  it('404 — sin token y oferta no encontrada', async () => {
+    Offer.findOne.mockResolvedValue(null);
     const res = await request(app).get('/api/offers/1');
-    expect(res.status).toBe(401);
+    expect(res.status).toBe(404);
   });
 
   it('404 — oferta no encontrada', async () => {

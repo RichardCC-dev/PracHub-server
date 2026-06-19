@@ -29,6 +29,8 @@ jest.mock('../src/models', () => {
     User: buildModel(),
     Student: buildModel(),
     Company: buildModel(),
+    Application: buildModel(),
+    Offer: buildModel(),
     Notification: buildModel({ sync: jest.fn().mockResolvedValue(true) }),
     DirectMessage: buildModel(),
     PasswordResetToken: buildModel(),
@@ -37,7 +39,7 @@ jest.mock('../src/models', () => {
 });
 
 const app = require('../src/app');
-const { User, Student, Company, DirectMessage, Notification } = require('../src/models');
+const { User, Student, Company, Application, DirectMessage, Notification } = require('../src/models');
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 const JWT_SECRET = process.env.JWT_SECRET || 'test-secret-key-for-jest-1234567890';
@@ -52,7 +54,7 @@ const mockStudentUser = {
   id: 1,
   role: 'student',
   email: 'student@unmsm.edu.pe',
-  studentProfile: { firstName: 'Juan', lastName: 'Perez', profilePictureUrl: null },
+  studentProfile: { id: 10, firstName: 'Juan', lastName: 'Perez', profilePictureUrl: null },
   companyProfile: null,
 };
 
@@ -62,7 +64,7 @@ const mockCompanyUser = {
   role: 'company',
   email: 'empresa@corp.com',
   studentProfile: null,
-  companyProfile: { tradeName: 'Mi Empresa', legalName: 'Mi Empresa SAC', logoUrl: null },
+  companyProfile: { id: 20, tradeName: 'Mi Empresa', legalName: 'Mi Empresa SAC', logoUrl: null },
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -111,6 +113,7 @@ describe('POST /api/messages — Enviar mensaje', () => {
       .mockResolvedValueOnce(mockStudentUser);  // receptor en sendMessage
 
     DirectMessage.findOne.mockResolvedValueOnce(null);
+    Application.findOne.mockResolvedValueOnce({ id: 99 });
     DirectMessage.create.mockResolvedValueOnce({
       id: 1, senderId: 2, receiverId: 1, content: 'Hola estudiante', isRead: false,
     });
@@ -268,4 +271,3 @@ describe('GET /api/messages/users/search — Busqueda de usuarios (HU-26)', () =
     expect(res.body.success).toBe(true);
   });
 });
-
