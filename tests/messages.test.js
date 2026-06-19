@@ -126,6 +126,18 @@ describe('POST /api/messages — Enviar mensaje', () => {
       .send({ receiverId: 1, content: 'Hola estudiante' });
 
     expect(res.status).toBe(201);
+    expect(Application.findOne).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { studentId: 10 },
+        include: expect.arrayContaining([
+          expect.objectContaining({
+            as: 'offer',
+            where: { companyId: 20 },
+            required: true,
+          }),
+        ]),
+      })
+    );
     expect(res.body.success).toBe(true);
     expect(res.body.data).toHaveProperty('senderId', 2);
   });
