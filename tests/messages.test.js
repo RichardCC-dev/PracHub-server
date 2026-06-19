@@ -112,6 +112,8 @@ describe('POST /api/messages — Enviar mensaje', () => {
       .mockResolvedValueOnce(mockCompanyUser)   // authenticate
       .mockResolvedValueOnce(mockStudentUser);  // receptor en sendMessage
 
+    Application.findOne.mockResolvedValueOnce({ id: 1 });
+
     DirectMessage.findOne.mockResolvedValueOnce(null);
     Application.findOne.mockResolvedValueOnce({ id: 99 });
     DirectMessage.create.mockResolvedValueOnce({
