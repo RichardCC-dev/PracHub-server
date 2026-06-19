@@ -5,8 +5,8 @@ const options = {
     openapi: '3.0.0',
     info: {
       title: 'PracHub API Documentation',
-      version: '1.0.0',
-      description: 'API Documentation for PracHub backend (Fases 1 a 5)',
+      version: '1.1.0',
+      description: 'API Documentation for PracHub backend (Fases 1 a 5 + Refactor 2026-1)',
     },
     servers: [
       {

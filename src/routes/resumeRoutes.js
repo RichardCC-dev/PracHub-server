@@ -28,6 +28,7 @@ router.get('/', resumeController.getResume);
  * /resume/export-pdf:
  *   post:
  *     summary: Exportar CV a PDF
+ *     description: Genera y descarga el PDF. No crea una versión en el historial (el guardado es manual).
  *     tags: [Resume]
  *     security:
  *       - bearerAuth: []
@@ -116,17 +117,6 @@ router.put(
  *         required: true
  *         schema:
  *           type: string
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - text
- *             properties:
- *               text:
- *                 type: string
  *     responses:
  *       200:
  *         description: Sugerencia generada
@@ -147,17 +137,6 @@ router.post('/improve/:section/:field', aiImproveLimiter, resumeController.impro
  *         required: true
  *         schema:
  *           type: string
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - content
- *             properties:
- *               content:
- *                 type: object
  *     responses:
  *       200:
  *         description: Sugerencia generada
@@ -167,6 +146,28 @@ router.post('/improve-section/:section', aiImproveLimiter, resumeController.impr
 /**
  * @swagger
  * /resume/versions:
+ *   post:
+ *     summary: Guardar manualmente una versión del CV con un título
+ *     description: Crea una nueva entrada en el historial de versiones a partir del CV actual.
+ *     tags: [Resume]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               title:
+ *                 type: string
+ *                 maxLength: 120
+ *                 description: Título personalizado de la versión
+ *               template:
+ *                 type: string
+ *                 enum: [harvard, investment-banking]
+ *     responses:
+ *       201:
+ *         description: Versión guardada
  *   get:
  *     summary: Obtener historial de versiones del CV
  *     tags: [Resume]
@@ -176,6 +177,20 @@ router.post('/improve-section/:section', aiImproveLimiter, resumeController.impr
  *       200:
  *         description: Historial de versiones obtenido
  */
+router.post(
+  '/versions',
+  [
+    body('title')
+      .optional({ checkFalsy: true })
+      .trim()
+      .isLength({ max: 120 }).withMessage('El título no puede exceder 120 caracteres.'),
+    body('template')
+      .optional({ checkFalsy: true })
+      .isIn(['harvard', 'investment-banking']).withMessage('Plantilla inválida.'),
+  ],
+  validateRequest,
+  resumeController.saveVersion,
+);
 router.get('/versions', resumeController.getVersions);
 router.get('/versions/:versionId/pdf', resumeController.exportVersionPdf);
 router.post('/versions/:versionId/restore', resumeController.restoreVersion);

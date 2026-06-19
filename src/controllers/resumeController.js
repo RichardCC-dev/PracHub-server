@@ -79,6 +79,27 @@ const exportVersionPdf = async (req, res, next) => {
   }
 };
 
+/**
+ * Guarda manualmente una versión del CV con un título personalizado.
+ * POST /resume/versions
+ */
+const saveVersion = async (req, res, next) => {
+  try {
+    const studentId = req.user.studentProfile.id;
+    const { title, template } = req.body;
+    const version = await resumeVersionService.createVersion(studentId, {
+      title: title || null,
+      template: template || null,
+    });
+    return res.status(201).json({
+      message: 'Versión guardada correctamente.',
+      version,
+    });
+  } catch (error) {
+    return next(error);
+  }
+};
+
 const getVersions = async (req, res, next) => {
   try {
     const studentId = req.user.studentProfile.id;
@@ -122,6 +143,7 @@ module.exports = {
   improveFullSection,
   exportPdf,
   exportVersionPdf,
+  saveVersion,
   getVersions,
   restoreVersion,
   deleteVersion,

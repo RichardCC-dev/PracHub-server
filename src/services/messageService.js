@@ -1,4 +1,4 @@
-const { DirectMessage, User, Student, Company } = require('../models');
+const { DirectMessage, User, Student, Company, Application, Offer } = require('../models');
 const { Op } = require('sequelize');
 
 /**
@@ -48,23 +48,94 @@ const formatParticipant = (user) => {
   };
 };
 
+const httpError = (message, statusCode = 400) =>
+  Object.assign(new Error(message), { statusCode });
+
 const messageService = {
   /**
-   * Envía un mensaje directo de senderId a receiverId.
-   * Valida que el receptor exista.
+   * Verifica que un estudiante haya postulado a alguna oferta de la empresa.
    */
-  async sendMessage(senderId, receiverId, content) {
-    if (senderId === receiverId) {
-      throw new Error('No puedes enviarte mensajes a ti mismo.');
+  async studentAppliedToCompany(studentId, companyId) {
+    const applied = await Application.findOne({
+      where: { studentId },
+      include: [{ model: Offer, as: 'offer', where: { companyId }, required: true, attributes: ['id'] }],
+    });
+    return !!applied;
+  },
+
+  /**
+   * Aplica las reglas de mensajería:
+   *  - La empresa solo puede iniciar conversación con candidatos que postularon a sus ofertas.
+   *  - El estudiante solo puede responder a una empresa que ya le escribió primero.
+   *  - No se permite chat estudiante↔estudiante ni empresa↔empresa.
+   * @param {object} sender - req.user (incluye role, studentProfile, companyProfile)
+   * @param {object} receiver - User receptor (incluye studentProfile, companyProfile)
+   */
+  async assertCanSend(sender, receiver) {
+    if (sender.role === 'student') {
+      if (receiver.role !== 'company') {
+        throw httpError('Solo puedes responder a reclutadores.', 403);
+      }
+      const incoming = await DirectMessage.findOne({
+        where: { senderId: receiver.id, receiverId: sender.id },
+      });
+      if (!incoming) {
+        throw httpError('Solo puedes responder cuando un reclutador te haya escrito primero.', 403);
+      }
+      return;
     }
 
-    const receiver = await User.findByPk(receiverId);
-    if (!receiver) {
-      throw new Error('Usuario receptor no encontrado.');
+    if (sender.role === 'company') {
+      if (receiver.role !== 'student' || !receiver.studentProfile) {
+        throw httpError('Solo puedes escribir a estudiantes candidatos.', 403);
+      }
+      // Permitir si ya existe conversación previa.
+      const existing = await DirectMessage.findOne({
+        where: {
+          [Op.or]: [
+            { senderId: sender.id, receiverId: receiver.id },
+            { senderId: receiver.id, receiverId: sender.id },
+          ],
+        },
+      });
+      if (existing) return;
+
+      const companyId = sender.companyProfile?.id;
+      if (!companyId) {
+        throw httpError('No tienes un perfil de empresa asociado.', 403);
+      }
+      const applied = await this.studentAppliedToCompany(receiver.studentProfile.id, companyId);
+      if (!applied) {
+        throw httpError('Solo puedes iniciar conversación con candidatos que postularon a tus ofertas.', 403);
+      }
+      return;
     }
+
+    throw httpError('No estás autorizado para enviar mensajes.', 403);
+  },
+
+  /**
+   * Envía un mensaje directo de sender (req.user) a receiverId, aplicando las reglas.
+   */
+  async sendMessage(sender, receiverId, content) {
+    if (sender.id === receiverId) {
+      throw httpError('No puedes enviarte mensajes a ti mismo.', 400);
+    }
+
+    const receiver = await User.findByPk(receiverId, {
+      include: [
+        { model: Student, as: 'studentProfile', required: false },
+        { model: Company, as: 'companyProfile', required: false },
+      ],
+    });
+    if (!receiver) {
+      throw httpError('Usuario receptor no encontrado.', 404);
+    }
+
+    await this.assertCanSend(sender, receiver);
 
     const message = await DirectMessage.create({
-      senderId,
+      senderId: sender.id,
       receiverId,
       content: content.trim(),
       isRead: false,
@@ -144,7 +215,7 @@ const messageService = {
     });
 
     if (!otherUser) {
-      throw new Error('Usuario no encontrado.');
+      throw httpError('Usuario no encontrado.', 404);
     }
 
     const { count, rows } = await DirectMessage.findAndCountAll({
@@ -193,52 +264,51 @@ const messageService = {
   },
 
   /**
-   * Busca usuarios del sistema por nombre o email para iniciar conversaciones (HU-26).
-   * Solo devuelve usuarios con rol student o company (no admin).
-   * Excluye al propio usuario.
-   * @param {number} currentUserId - ID del usuario que busca
-   * @param {string} query - Texto a buscar (mín. 2 caracteres)
+   * Busca candidatos para que una EMPRESA inicie conversación.
+   * Solo las empresas pueden buscar, y únicamente entre estudiantes que
+   * postularon a alguna de sus ofertas. Los estudiantes no pueden iniciar
+   * conversaciones (solo responden), por lo que reciben una lista vacía.
+   * @param {object} currentUser - req.user
+   * @param {string} query - Texto a buscar
    * @param {number} limit - Máximo de resultados
    */
-  async searchUsers(currentUserId, query, limit = 10) {
-    if (!query || query.trim().length < 2) {
+  async searchUsers(currentUser, query, limit = 10) {
+    if (currentUser.role !== 'company' || !currentUser.companyProfile) {
       return [];
     }
+    const companyId = currentUser.companyProfile.id;
 
-    const users = await User.findAll({
-      where: {
-        id: { [Op.ne]: currentUserId },
-        role: { [Op.in]: ['student', 'company'] },
-      },
-      attributes: PUBLIC_USER_ATTRS,
-      include: [
-        {
-          model: Student,
-          as: 'studentProfile',
-          attributes: ['firstName', 'lastName', 'profilePictureUrl', 'career'],
-          required: false,
-        },
-        {
-          model: Company,
-          as: 'companyProfile',
-          attributes: ['legalName', 'tradeName', 'logoUrl'],
-          required: false,
-        },
-      ],
-      limit,
+    // IDs de estudiantes que postularon a ofertas de la empresa
+    const applications = await Application.findAll({
+      attributes: ['studentId'],
+      include: [{ model: Offer, as: 'offer', where: { companyId }, required: true, attributes: [] }],
+      group: ['studentId'],
+    });
+    const studentIds = applications.map((a) => a.studentId);
+    if (studentIds.length === 0) return [];
+
+    const students = await Student.findAll({
+      where: { id: { [Op.in]: studentIds } },
+      include: [{ model: User, as: 'user', attributes: PUBLIC_USER_ATTRS }],
+      limit: 50,
     });
 
-    const q = query.trim().toLowerCase();
-    return users
-      .filter((u) => {
-        const s = u.studentProfile;
-        const c = u.companyProfile;
-        const name = s
-          ? `${s.firstName} ${s.lastName}`.toLowerCase()
-          : (c?.tradeName || c?.legalName || '').toLowerCase();
-        return name.includes(q) || u.email.toLowerCase().includes(q);
+    const q = (query || '').trim().toLowerCase();
+    return students
+      .filter((s) => {
+        if (q.length < 2) return true;
+        const name = `${s.firstName} ${s.lastName}`.toLowerCase();
+        return name.includes(q) || (s.user?.email || '').toLowerCase().includes(q);
       })
-      .map(formatParticipant);
+      .slice(0, limit)
+      .map((s) => ({
+        id: s.user?.id,
+        role: 'student',
+        email: s.user?.email,
+        displayName: `${s.firstName} ${s.lastName}`.trim(),
+        avatarUrl: s.profilePictureUrl || null,
+      }))
+      .filter((u) => u.id);
   },
 };
 

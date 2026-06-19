@@ -52,6 +52,29 @@ const getOfferById = async (offerId, companyId) => {
   return offer;
 };
 
+/**
+ * Obtener el detalle público de una oferta (estudiantes / acceso por URL).
+ * Solo devuelve ofertas aprobadas e incluye los datos públicos de la empresa.
+ */
+const getPublicOfferById = async (offerId) => {
+  const offer = await Offer.findOne({
+    where: { id: offerId, status: 'approved' },
+    include: [
+      {
+        model: Company,
+        as: 'company',
+        attributes: ['id', 'legalName', 'tradeName', 'logoUrl', 'industry', 'description', 'websiteUrl', 'city'],
+      },
+    ],
+  });
+
+  if (!offer) {
+    throw Object.assign(new Error('Oferta no encontrada o no disponible.'), { statusCode: 404 });
+  }
+
+  return offer;
+};
+
 const updateOffer = async (offerId, companyId, data) => {
   const offer = await Offer.findOne({ where: { id: offerId, companyId } });
 
@@ -118,6 +141,11 @@ const getAllOffers = async (filters = {}) => {
     where.modality = filters.modality;
   }
 
+  // Filtro por área
+  if (filters.area) {
+    where.area = filters.area;
+  }
+
   // Filtro por búsqueda de texto
   if (filters.search) {
     where.title = { [Op.like]: `%${filters.search}%` };
@@ -140,6 +168,7 @@ module.exports = {
   createOffer,
   getCompanyOffers,
   getOfferById,
+  getPublicOfferById,
   updateOffer,
   closeOffer,
   getAllOffers,

@@ -7,17 +7,8 @@ const offerController = require('../controllers/offerController');
 
 const router = express.Router();
 
-/**
- * @swagger
- * /offers:
- *   get:
- *     summary: Obtener todas las ofertas públicas
- *     tags: [Offers]
- *     responses:
- *       200:
- *         description: Lista de ofertas
- */
-router.get('/', offerController.getAllOffers);
+// Middleware reutilizable: autenticación + rol empresa
+const requireCompany = [authenticate, authorize('company')];
 
 const offerValidation = [
   body('title')
@@ -65,9 +56,27 @@ const offerValidation = [
     .isISO8601().withMessage('La fecha de expiración debe ser una fecha válida.'),
 ];
 
-// Todas las rutas debajo requieren auth y rol company
-router.use(authenticate);
-router.use(authorize('company'));
+/**
+ * @swagger
+ * /offers:
+ *   get:
+ *     summary: Obtener todas las ofertas públicas (aprobadas)
+ *     tags: [Offers]
+ *     parameters:
+ *       - in: query
+ *         name: modality
+ *         schema: { type: string, enum: [remote, in_person, hybrid] }
+ *       - in: query
+ *         name: area
+ *         schema: { type: string }
+ *       - in: query
+ *         name: search
+ *         schema: { type: string }
+ *     responses:
+ *       200:
+ *         description: Lista de ofertas
+ */
+router.get('/', offerController.getAllOffers);
 
 /**
  * @swagger
@@ -81,7 +90,7 @@ router.use(authorize('company'));
  *       200:
  *         description: Lista de ofertas propias
  */
-router.get('/my', offerController.getMyOffers);
+router.get('/my', requireCompany, offerController.getMyOffers);
 
 /**
  * @swagger
@@ -103,25 +112,18 @@ router.get('/my', offerController.getMyOffers);
  *               - area
  *               - modality
  *             properties:
- *               title:
- *                 type: string
- *               description:
- *                 type: string
- *               area:
- *                 type: string
+ *               title: { type: string }
+ *               description: { type: string }
+ *               area: { type: string }
  *               modality:
  *                 type: string
  *                 enum: [remote, in_person, hybrid]
- *               requirements:
- *                 type: string
- *               duration:
- *                 type: string
- *               compensation:
- *                 type: string
+ *               requirements: { type: string }
+ *               duration: { type: string }
+ *               compensation: { type: string }
  *               careerTags:
  *                 type: array
- *                 items:
- *                   type: string
+ *                 items: { type: string }
  *               expiresAt:
  *                 type: string
  *                 format: date-time
@@ -129,33 +131,33 @@ router.get('/my', offerController.getMyOffers);
  *       201:
  *         description: Oferta creada
  */
-router.post('/', offerValidation, validateRequest, offerController.createOffer);
+router.post('/', requireCompany, offerValidation, validateRequest, offerController.createOffer);
 
 /**
  * @swagger
  * /offers/{offerId}:
  *   get:
- *     summary: Obtener detalle de oferta
+ *     summary: Obtener el detalle público de una oferta aprobada
+ *     description: Accesible para estudiantes y por URL directa. Solo devuelve ofertas aprobadas.
  *     tags: [Offers]
- *     security:
- *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: offerId
  *         required: true
- *         schema:
- *           type: integer
+ *         schema: { type: integer }
  *     responses:
  *       200:
- *         description: Detalle de oferta
+ *         description: Detalle de la oferta
+ *       404:
+ *         description: Oferta no encontrada o no disponible
  */
-router.get('/:offerId', param('offerId').isInt(), validateRequest, offerController.getOfferById);
+router.get('/:offerId', param('offerId').isInt(), validateRequest, offerController.getPublicOfferById);
 
 /**
  * @swagger
  * /offers/{offerId}:
  *   put:
- *     summary: Actualizar una oferta
+ *     summary: Actualizar una oferta (Empresa)
  *     tags: [Offers]
  *     security:
  *       - bearerAuth: []
@@ -163,25 +165,23 @@ router.get('/:offerId', param('offerId').isInt(), validateRequest, offerControll
  *       - in: path
  *         name: offerId
  *         required: true
- *         schema:
- *           type: integer
+ *         schema: { type: integer }
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
- *           schema:
- *             type: object
+ *           schema: { type: object }
  *     responses:
  *       200:
  *         description: Oferta actualizada
  */
-router.put('/:offerId', offerValidation, validateRequest, offerController.updateOffer);
+router.put('/:offerId', requireCompany, offerValidation, validateRequest, offerController.updateOffer);
 
 /**
  * @swagger
  * /offers/{offerId}/close:
  *   patch:
- *     summary: Cerrar una oferta
+ *     summary: Cerrar una oferta (Empresa)
  *     tags: [Offers]
  *     security:
  *       - bearerAuth: []
@@ -189,12 +189,11 @@ router.put('/:offerId', offerValidation, validateRequest, offerController.update
  *       - in: path
  *         name: offerId
  *         required: true
- *         schema:
- *           type: integer
+ *         schema: { type: integer }
  *     responses:
  *       200:
  *         description: Oferta cerrada
  */
-router.patch('/:offerId/close', param('offerId').isInt(), validateRequest, offerController.closeOffer);
+router.patch('/:offerId/close', requireCompany, param('offerId').isInt(), validateRequest, offerController.closeOffer);
 
 module.exports = router;

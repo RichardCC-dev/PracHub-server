@@ -1,6 +1,6 @@
 const puppeteer = require('puppeteer');
 const { getResume } = require('./resumeService');
-const { createVersion, getVersionById } = require('./resumeVersionService');
+const { getVersionById } = require('./resumeVersionService');
 
 const ALLOWED_TEMPLATES = ['harvard', 'investment-banking'];
 
@@ -182,8 +182,8 @@ const exportResumePdf = async (studentId, template) => {
     const buffer = Buffer.isBuffer(pdfData) ? pdfData : Buffer.from(pdfData);
     const filename = `${normalizeFilePart(resume.personal?.fullName)}-${template}-${formatDateForFile()}.pdf`;
 
-    // Guardar versión en el historial después de exportar exitosamente
-    await createVersion(studentId, template, null);
+    // (sin guardado automático tras exportar)
+    // Exportar a PDF ya no crea una versión en el historial: el guardado es manual (POST /resume/versions).
 
     return { buffer, filename };
   } finally {

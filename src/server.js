@@ -24,8 +24,6 @@ const startServer = async () => {
   try {
     await sequelize.authenticate();
     // Solo crear tablas nuevas que no existan (force:false, alter:false)
-    const { Notification } = require('./models');
-    await Notification.sync({ force: false });
     await sequelize.sync({ alter: false });
 
     app.listen(PORT, () => {

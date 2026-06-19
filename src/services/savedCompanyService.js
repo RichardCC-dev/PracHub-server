@@ -1,4 +1,4 @@
-const { SavedCompany, Company, Student, User, Offer } = require('../models');
+const { SavedCompany, Company, Student, Offer } = require('../models');
 const { Op } = require('sequelize');
 
 const savedCompanyService = {
@@ -88,7 +88,8 @@ const savedCompanyService = {
   },
 
   /**
-   * Obtiene el feed de ofertas de empresas seguidas
+   * Obtiene el feed de ofertas de empresas seguidas.
+   * Devuelve { count, rows } con las ofertas aprobadas de las empresas seguidas.
    */
   async getFollowedCompaniesFeed(studentId, options = {}) {
     const { limit = 20, offset = 0 } = options;
@@ -105,7 +106,7 @@ const savedCompanyService = {
       return { count: 0, rows: [] };
     }
 
-    // Obtener ofertas de esas empresas
+    // Obtener ofertas aprobadas de esas empresas (mismo patrón que getAllOffers)
     const offers = await Offer.findAndCountAll({
       where: {
         companyId: { [Op.in]: companyIds },
@@ -115,11 +116,13 @@ const savedCompanyService = {
         {
           model: Company,
           as: 'company',
+          attributes: ['id', 'legalName', 'tradeName', 'logoUrl'],
         },
       ],
-      order: [['createdAt', 'DESC']],
+      order: [['id', 'DESC']],
       limit,
       offset,
+      distinct: true,
     });
 
     return offers;
@@ -175,12 +178,12 @@ const savedCompanyService = {
       careerDistribution: Object.entries(careerDistribution).map(([name, count]) => ({
         name,
         count,
-        percentage: Math.round((count / followers.length) * 100),
+        percentage: followers.length ? Math.round((count / followers.length) * 100) : 0,
       })),
       universityDistribution: Object.entries(universityDistribution).map(([name, count]) => ({
         name,
         count,
-        percentage: Math.round((count / followers.length) * 100),
+        percentage: followers.length ? Math.round((count / followers.length) * 100) : 0,
       })),
     };
   },

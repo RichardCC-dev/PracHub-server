@@ -39,7 +39,15 @@ const parsePlainVersion = (raw) => {
   return result;
 };
 
-const createVersion = async (studentId, template = null, pdfUrl = null) => {
+/**
+ * Crea una nueva versión del CV a partir del CV activo del estudiante.
+ * El guardado es manual: el estudiante asigna un título.
+ * @param {number} studentId
+ * @param {{ title?: string|null, template?: string|null, pdfUrl?: string|null }} options
+ */
+const createVersion = async (studentId, options = {}) => {
+  const { title = null, template = null, pdfUrl = null } = options;
+
   const resume = await Resume.findOne({ where: { studentId }, raw: true });
 
   if (!resume) {
@@ -50,6 +58,7 @@ const createVersion = async (studentId, template = null, pdfUrl = null) => {
 
   const version = await ResumeVersion.create({
     studentId,
+    title: title ? String(title).trim().slice(0, 120) : null,
     profile: resume.profile,
     personal: resume.personal,
     education: resume.education,
@@ -63,7 +72,7 @@ const createVersion = async (studentId, template = null, pdfUrl = null) => {
     pdfUrl,
   });
 
-  return version;
+  return parsePlainVersion(version.get({ plain: true }));
 };
 
 const getVersionsByStudent = async (studentId, limit = 20) => {

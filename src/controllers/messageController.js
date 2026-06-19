@@ -1,39 +1,28 @@
 const { body, param, query } = require('express-validator');
 const messageService = require('../services/messageService');
-const notificationService = require('../services/notificationService');
 const logger = require('../utils/logger');
 
 const messageController = {
   /**
    * POST /api/messages
    * Enviar un mensaje directo a otro usuario.
-   * Accesible para roles: student, company.
+   * Reglas aplicadas en el servicio: la empresa solo inicia con candidatos que
+   * postularon; el estudiante solo responde; sin chat estudiante↔estudiante.
    */
   async sendMessage(req, res, next) {
     try {
-      const senderId = req.user.id;
       const { receiverId, content } = req.body;
 
       const message = await messageService.sendMessage(
-        senderId,
+        req.user,
         parseInt(receiverId),
         content
       );
 
-      // Notificar al receptor
-      const senderName = req.user.studentProfile
-        ? `${req.user.studentProfile.firstName} ${req.user.studentProfile.lastName}`
-        : req.user.companyProfile?.tradeName ||
-          req.user.companyProfile?.legalName ||
-          req.user.email;
+      // Nota: NO se crea notificación de mensaje. Las notificaciones son solo de empleos.
+      // El conteo de mensajes no leídos se muestra en el ícono de Mensajes (badge).
 
-      await notificationService.createMessageNotification(
-        parseInt(receiverId),
-        senderName,
-        content
-      );
-
-      logger.info(`[Messages] Mensaje enviado de userId=${senderId} a userId=${receiverId}`);
+      logger.info(`[Messages] Mensaje enviado de userId=${req.user.id} a userId=${receiverId}`);
 
       res.status(201).json({
         success: true,
@@ -148,13 +137,13 @@ const messageController = {
 
   /**
    * GET /api/messages/users/search?q=...
-   * Buscar usuarios para iniciar conversaciones (HU-26).
+   * Buscar candidatos para iniciar conversación. Solo disponible para empresas
+   * (entre sus candidatos). Los estudiantes reciben lista vacía.
    */
   async searchUsers(req, res, next) {
     try {
-      const currentUserId = req.user.id;
       const { q = '', limit = 10 } = req.query;
-      const users = await messageService.searchUsers(currentUserId, q, parseInt(limit));
+      const users = await messageService.searchUsers(req.user, q, parseInt(limit));
       res.json({ success: true, data: users });
     } catch (error) {
       next(error);

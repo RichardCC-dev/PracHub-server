@@ -52,6 +52,24 @@ const getOfferById = async (req, res, next) => {
   }
 };
 
+/**
+ * GET /api/offers/:offerId
+ * Detalle público de una oferta aprobada (accesible para estudiantes y por URL).
+ */
+const getPublicOfferById = async (req, res, next) => {
+  try {
+    const { offerId } = req.params;
+    const offer = await offerService.getPublicOfferById(offerId);
+
+    res.status(200).json({
+      success: true,
+      data: { offer },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 const updateOffer = async (req, res, next) => {
   try {
     const companyId = req.user.companyProfile?.id;
@@ -101,6 +119,7 @@ const getAllOffers = async (req, res, next) => {
     const filters = {
       status: 'approved',
       modality: req.query.modality,
+      area: req.query.area,
       search: req.query.search,
     };
 
@@ -119,6 +138,7 @@ module.exports = {
   createOffer,
   getMyOffers,
   getOfferById,
+  getPublicOfferById,
   updateOffer,
   closeOffer,
   getAllOffers,

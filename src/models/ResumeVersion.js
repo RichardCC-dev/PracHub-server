@@ -14,6 +14,11 @@ const ResumeVersion = sequelize.define(
       allowNull: false,
       field: 'student_id',
     },
+    title: {
+      type: DataTypes.STRING(120),
+      allowNull: true,
+      comment: 'Título personalizado asignado por el estudiante al guardar la versión',
+    },
     profile: {
       type: DataTypes.JSON,
       allowNull: true,

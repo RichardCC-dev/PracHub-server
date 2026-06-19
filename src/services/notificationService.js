@@ -1,3 +1,4 @@
+const { Op } = require('sequelize');
 const { Notification } = require('../models');
 
 const STATUS_MESSAGES = {
@@ -17,6 +18,10 @@ const STATUS_MESSAGES = {
   },
 };
 
+// Las notificaciones de la campana son SOLO sobre empleos.
+// Los mensajes directos NO generan notificación: su conteo se muestra en el ícono de Mensajes.
+const NON_JOB_TYPES = ['message_received'];
+
 const notificationService = {
   async createStatusChangeNotification(userId, applicationId, offerTitle, newStatus, notes = null) {
     const config = STATUS_MESSAGES[newStatus];
@@ -34,7 +39,7 @@ const notificationService = {
 
   async getUserNotifications(userId) {
     return await Notification.findAll({
-      where: { userId },
+      where: { userId, type: { [Op.notIn]: NON_JOB_TYPES } },
       order: [['created_at', 'DESC']],
       limit: 50,
     });
@@ -59,27 +64,7 @@ const notificationService = {
 
   async getUnreadCount(userId) {
     return await Notification.count({
-      where: { userId, isRead: false },
-    });
-  },
-
-  /**
-   * Crea una notificacion de mensaje recibido (HU-24, HU-25, HU-26).
-   * @param {number} receiverUserId - ID del usuario que recibe la notificacion
-   * @param {string} senderName - Nombre visible del remitente
-   * @param {string} messagePreview - Primeros caracteres del mensaje
-   */
-  async createMessageNotification(receiverUserId, senderName, messagePreview) {
-    const preview = messagePreview.length > 80
-      ? messagePreview.substring(0, 80) + '...'
-      : messagePreview;
-
-    await Notification.create({
-      userId: receiverUserId,
-      type: 'message_received',
-      title: `Nuevo mensaje de ${senderName}`,
-      message: preview,
-      isRead: false,
+      where: { userId, isRead: false, type: { [Op.notIn]: NON_JOB_TYPES } },
     });
   },
 };
