@@ -17,6 +17,8 @@ const recommendationRoutes = require('./routes/recommendationRoutes');
 const alertRoutes = require('./routes/alertRoutes');
 const savedCompanyRoutes = require('./routes/savedCompanyRoutes');
 const messageRoutes = require('./routes/messageRoutes');
+const companyMetricsRoutes = require('./routes/companyMetrics');
+const invitationRoutes = require('./routes/invitationRoutes');
 const errorHandler = require('./middlewares/errorHandler');
 const { globalApiLimiter } = require('./middlewares/rateLimit');
 
@@ -109,6 +111,8 @@ app.use('/api/cv-analysis', cvAnalysisRoutes);
 app.use('/api/alerts', alertRoutes);
 app.use('/api/saved-companies', savedCompanyRoutes);
 app.use('/api/messages', messageRoutes);
+app.use('/api/company-metrics', companyMetricsRoutes);
+app.use('/api/invitations', invitationRoutes);
 
 // Configuración de Swagger
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpecs, { explorer: true }));

@@ -15,8 +15,9 @@ const AlertSettings = require('./AlertSettings');
 const SavedCompany = require('./SavedCompany');
 const AlertHistory = require('./AlertHistory');
 const DirectMessage = require('./DirectMessage');
+const InvitationToApply = require('./InvitationToApply');
 
-// Validación de carga de todos los modelos (16 en total)
+// Validación de carga de todos los modelos (17 en total)
 [
   { name: 'User', model: User },
   { name: 'Student', model: Student },
@@ -33,7 +34,8 @@ const DirectMessage = require('./DirectMessage');
   { name: 'AlertSettings', model: AlertSettings },
   { name: 'SavedCompany', model: SavedCompany },
   { name: 'AlertHistory', model: AlertHistory },
-  { name: 'DirectMessage', model: DirectMessage }
+  { name: 'DirectMessage', model: DirectMessage },
+  { name: 'InvitationToApply', model: InvitationToApply }
 ].forEach(item => {
   if (!item.model || !item.model.prototype || !item.model.prototype.constructor.name) {
     throw new Error(`¡El modelo ${item.name} no se cargó correctamente! Revisa el archivo ${item.name}.js`);
@@ -340,6 +342,44 @@ DirectMessage.belongsTo(User, {
   as: 'receiver',
 });
 
+// ==========================================
+// Relaciones de Invitaciones a Postular (HU-18)
+// ==========================================
+
+// --- Relaciones de InvitationToApply ---
+DirectMessage.hasOne(InvitationToApply, {
+  foreignKey: 'messageId',
+  as: 'invitation',
+  onDelete: 'CASCADE',
+});
+
+InvitationToApply.belongsTo(DirectMessage, {
+  foreignKey: 'messageId',
+  as: 'message',
+});
+
+Offer.hasMany(InvitationToApply, {
+  foreignKey: 'offerId',
+  as: 'invitations',
+  onDelete: 'CASCADE',
+});
+
+InvitationToApply.belongsTo(Offer, {
+  foreignKey: 'offerId',
+  as: 'offer',
+});
+
+Student.hasMany(InvitationToApply, {
+  foreignKey: 'studentId',
+  as: 'invitationsReceived',
+  onDelete: 'CASCADE',
+});
+
+InvitationToApply.belongsTo(Student, {
+  foreignKey: 'studentId',
+  as: 'student',
+});
+
 module.exports = {
   sequelize,
   User,
@@ -358,4 +398,5 @@ module.exports = {
   SavedCompany,
   AlertHistory,
   DirectMessage,
+  InvitationToApply,
 };
