@@ -33,6 +33,12 @@ const AlertSettings = sequelize.define(
       defaultValue: true,
       field: 'platform_enabled',
     },
+    whatsappEnabled: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
+      field: 'whatsapp_enabled',
+    },
     dailyDigestTime: {
       type: DataTypes.TIME,
       allowNull: true,

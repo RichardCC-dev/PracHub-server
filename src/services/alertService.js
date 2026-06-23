@@ -31,6 +31,7 @@ const alertService = {
         frequency: 'immediate',
         emailEnabled: true,
         platformEnabled: true,
+        whatsappEnabled: false,
       });
     }
 

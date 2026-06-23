@@ -327,16 +327,20 @@ const applicationService = {
    */
   async updateApplicationStatus(applicationId, companyId, status, notes = null, internalNotes = null) {
     const notificationService = require('./notificationService');
+    const emailService = require('./emailService');
+    const { Company } = require('../models');
+
     const application = await Application.findByPk(applicationId, {
       include: [
         {
           model: Offer,
           as: 'offer',
+          include: [{ model: Company, as: 'company', attributes: ['tradeName', 'legalName'] }],
         },
         {
           model: Student,
           as: 'student',
-          include: [{ model: User, as: 'user', attributes: ['id'] }],
+          include: [{ model: User, as: 'user', attributes: ['id', 'email'] }],
         },
       ],
     });
@@ -370,6 +374,9 @@ const applicationService = {
     // Crear notificación para el estudiante si el estado cambió a algo relevante
     if (['revision', 'aceptada', 'descartada'].includes(status)) {
       const studentUserId = application.student?.user?.id;
+      const studentUserEmail = application.student?.user?.email;
+      const companyName = application.offer.company?.tradeName || application.offer.company?.legalName || 'Una empresa';
+
       if (studentUserId) {
         await notificationService.createStatusChangeNotification(
           studentUserId,
@@ -378,6 +385,29 @@ const applicationService = {
           status,
           notes
         );
+      }
+      
+      if (studentUserEmail) {
+        // Enviar correo (transaccional asíncrono, no esperamos a que termine para responder)
+        emailService.sendApplicationStatusChanged({
+          to: studentUserEmail,
+          offerTitle: application.offer.title,
+          companyName,
+          newStatus: status,
+          message: notes,
+        }).catch(err => console.error('Error enviando email de estado:', err));
+        
+        // Enviar WhatsApp
+        const { AlertSettings } = require('../models');
+        const whatsappService = require('./whatsappService');
+        AlertSettings.findOne({ where: { studentId: application.studentId } }).then(settings => {
+          if (settings?.whatsappEnabled && application.student?.phoneNumber) {
+             whatsappService.sendWhatsAppNotification(
+               application.student.phoneNumber,
+               `¡Hola ${application.student.firstName}! La empresa ${companyName} cambió el estado de tu postulación a "${status}". Ingresa a PracHub para ver más detalles: ${process.env.FRONTEND_URL}/applications`
+             ).catch(() => {});
+          }
+        }).catch(() => {});
       }
     }
 
@@ -478,7 +508,37 @@ const applicationService = {
       throw error;
     }
 
+    // Enviar email "CV visto" y WhatsApp al estudiante
+    try {
+      const emailService = require('./emailService');
+      const whatsappService = require('./whatsappService');
+      const { Company, AlertSettings } = require('../models');
+      const company = await Company.findByPk(companyId, { attributes: ['tradeName', 'legalName'] });
+      const studentUser = await User.findByPk(application.student.userId, { attributes: ['email'] });
+      const settings = await AlertSettings.findOne({ where: { studentId: application.studentId } });
+      const cName = company.tradeName || company.legalName;
+      
+      if (studentUser && company) {
+        await emailService.sendCVViewedByCompany({
+          to: studentUser.email,
+          companyName: cName
+        });
+        
+        if (settings?.whatsappEnabled && application.student.phoneNumber) {
+          whatsappService.sendWhatsAppNotification(
+            application.student.phoneNumber,
+            `¡Hola ${application.student.firstName}! La empresa ${cName} revisó tu CV. Ingresa a PracHub para ver más detalles: ${process.env.FRONTEND_URL}/applications`
+          ).catch(() => {});
+        }
+      }
+    } catch (err) {
+      console.error('Error enviando notificaciones CV View:', err);
+    }
+
     // Si hay una versión específica guardada, usarla
+    if (application.resumeVersion) {
+      return await exportVersionPdf(application.resumeVersionId, application.studentId, template);
+    }
     if (application.resumeVersion) {
       return await exportVersionPdf(application.resumeVersionId, application.studentId, template);
     }

@@ -469,6 +469,86 @@ const sendWeeklyDigest = async ({ to, firstName, offers }) => {
   return info;
 };
 
+const sendApplicationStatusChanged = async ({ to, offerTitle, companyName, newStatus, message }) => {
+  const transporter = await getTransporter();
+  const info = await transporter.sendMail({
+    from: process.env.SMTP_FROM || '"PracHub" <noreply@prachub.pe>',
+    to,
+    subject: `Actualización de postulación: ${offerTitle}`,
+    html: emailBase(`
+      <h2 style="margin-top:0;">Tu postulación ha cambiado de estado</h2>
+      <p>Hola,</p>
+      <p>La empresa <strong>${companyName}</strong> ha cambiado el estado de tu postulación para la oferta <strong>${offerTitle}</strong>.</p>
+      <p>Nuevo estado: <strong>${newStatus}</strong></p>
+      ${message ? `<p>Mensaje de la empresa: <em>"${message}"</em></p>` : ''}
+      <p>Revisa tu tablero de postulaciones para más detalles.</p>
+      <div style="margin-top:24px;">
+        <a href="${process.env.FRONTEND_URL}/applications" style="background:#064E3B;color:#fff;text-decoration:none;padding:12px 24px;border-radius:8px;font-weight:bold;display:inline-block;">Ver Postulaciones</a>
+      </div>
+    `),
+  });
+  logPreview(info);
+};
+
+const sendNewMessageReceived = async ({ to, senderName, messagePreview, conversationUrl }) => {
+  const transporter = await getTransporter();
+  const info = await transporter.sendMail({
+    from: process.env.SMTP_FROM || '"PracHub" <noreply@prachub.pe>',
+    to,
+    subject: `Nuevo mensaje de ${senderName}`,
+    html: emailBase(`
+      <h2 style="margin-top:0;">Tienes un nuevo mensaje</h2>
+      <p>Hola,</p>
+      <p><strong>${senderName}</strong> te ha enviado un mensaje:</p>
+      <div style="background:#f3f4f6;padding:16px;border-radius:8px;margin:16px 0;">
+        <p style="margin:0;color:#374151;">"${messagePreview}..."</p>
+      </div>
+      <div style="margin-top:24px;">
+        <a href="${conversationUrl}" style="background:#064E3B;color:#fff;text-decoration:none;padding:12px 24px;border-radius:8px;font-weight:bold;display:inline-block;">Responder Mensaje</a>
+      </div>
+    `),
+  });
+  logPreview(info);
+};
+
+const sendNewOfferFromFollowedCompany = async ({ to, companyName, offerTitle, offerUrl }) => {
+  const transporter = await getTransporter();
+  const info = await transporter.sendMail({
+    from: process.env.SMTP_FROM || '"PracHub" <noreply@prachub.pe>',
+    to,
+    subject: `${companyName} ha publicado una nueva oferta`,
+    html: emailBase(`
+      <h2 style="margin-top:0;">Nueva oferta de una empresa que sigues</h2>
+      <p>Hola,</p>
+      <p>La empresa <strong>${companyName}</strong> acaba de publicar una nueva oferta de prácticas: <strong>${offerTitle}</strong>.</p>
+      <p>¡No pierdas la oportunidad de postular!</p>
+      <div style="margin-top:24px;">
+        <a href="${offerUrl}" style="background:#064E3B;color:#fff;text-decoration:none;padding:12px 24px;border-radius:8px;font-weight:bold;display:inline-block;">Ver Oferta</a>
+      </div>
+    `),
+  });
+  logPreview(info);
+};
+
+const sendCVViewedByCompany = async ({ to, companyName }) => {
+  const transporter = await getTransporter();
+  const info = await transporter.sendMail({
+    from: process.env.SMTP_FROM || '"PracHub" <noreply@prachub.pe>',
+    to,
+    subject: `${companyName} ha visto tu CV`,
+    html: emailBase(`
+      <h2 style="margin-top:0;">¡Tu perfil está llamando la atención!</h2>
+      <p>Hola,</p>
+      <p>La empresa <strong>${companyName}</strong> ha revisado tu currículum recientemente.</p>
+      <p>Sigue mejorando tu perfil para aumentar tus oportunidades.</p>
+      <div style="margin-top:24px;">
+        <a href="${process.env.FRONTEND_URL}/profile" style="background:#064E3B;color:#fff;text-decoration:none;padding:12px 24px;border-radius:8px;font-weight:bold;display:inline-block;">Ver Mi Perfil</a>
+      </div>
+    `),
+  });
+  logPreview(info);
+};
+
 module.exports = {
   sendEmailVerificationEmail,
   sendWelcomeEmail,
@@ -483,4 +563,8 @@ module.exports = {
   sendOfferMatchAlert,
   sendDailyDigest,
   sendWeeklyDigest,
+  sendApplicationStatusChanged,
+  sendNewMessageReceived,
+  sendNewOfferFromFollowedCompany,
+  sendCVViewedByCompany,
 };

@@ -1,4 +1,4 @@
-const { Offer, Company, User } = require('../models');
+const { Offer, Company, User, Application, Simulation, CVAnalysis } = require('../models');
 const { Op } = require('sequelize');
 const alertService = require('./alertService');
 const logger = require('../utils/logger');
@@ -298,6 +298,54 @@ const getModerationHistory = async (limit = 50) => {
   return offers;
 };
 
+const getReports = async (startDate, endDate) => {
+  const dateFilter = {};
+  if (startDate && endDate) {
+    dateFilter.createdAt = {
+      [Op.between]: [new Date(startDate), new Date(endDate)],
+    };
+  } else if (startDate) {
+    dateFilter.createdAt = {
+      [Op.gte]: new Date(startDate),
+    };
+  } else if (endDate) {
+    dateFilter.createdAt = {
+      [Op.lte]: new Date(endDate),
+    };
+  }
+
+  // 1. Postulaciones totales
+  const totalApplications = await Application.count({ where: dateFilter });
+
+  // 2. Tasa de contratación (status = 'aceptada')
+  const hiredApplications = await Application.count({ 
+    where: { ...dateFilter, status: 'aceptada' } 
+  });
+  const hiringRate = totalApplications > 0 ? (hiredApplications / totalApplications) * 100 : 0;
+
+  // 3. Usuarios activos (aproximación por creación de usuarios)
+  const newStudents = await User.count({ where: { ...dateFilter, role: 'student' } });
+  const newCompanies = await User.count({ where: { ...dateFilter, role: 'company' } });
+
+  // 4. Módulos más utilizados
+  const totalSimulations = await Simulation.count({ where: dateFilter });
+  const totalCVAnalysis = await CVAnalysis.count({ where: dateFilter });
+
+  // Ofertas
+  const totalOffers = await Offer.count({ where: dateFilter });
+
+  return {
+    totalApplications,
+    hiredApplications,
+    hiringRate: Number(hiringRate.toFixed(2)),
+    newStudents,
+    newCompanies,
+    totalSimulations,
+    totalCVAnalysis,
+    totalOffers
+  };
+};
+
 module.exports = {
   getCompanies,
   toggleCompanyPublishing,
@@ -307,4 +355,5 @@ module.exports = {
   approveOffer,
   rejectOffer,
   getModerationHistory,
+  getReports,
 };

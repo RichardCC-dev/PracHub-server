@@ -191,4 +191,29 @@ router.post(
   adminController.rejectOffer
 );
 
+/**
+ * @swagger
+ * /admin/reports:
+ *   get:
+ *     summary: Obtener reportes y estadísticas
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: startDate
+ *         schema:
+ *           type: string
+ *           format: date
+ *       - in: query
+ *         name: endDate
+ *         schema:
+ *           type: string
+ *           format: date
+ *     responses:
+ *       200:
+ *         description: Reportes obtenidos
+ */
+router.get('/reports', adminController.getReports);
+
 module.exports = router;

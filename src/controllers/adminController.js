@@ -200,6 +200,20 @@ const getModerationHistory = async (req, res, next) => {
   }
 };
 
+const getReports = async (req, res, next) => {
+  try {
+    const { startDate, endDate } = req.query;
+    const reports = await adminService.getReports(startDate, endDate);
+    res.status(200).json({
+      success: true,
+      message: 'Reportes obtenidos correctamente.',
+      data: { metrics: reports },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   getCompanies,
   enableCompanyPublishing,
@@ -210,4 +224,5 @@ module.exports = {
   approveOffer,
   rejectOffer,
   getModerationHistory,
+  getReports,
 };

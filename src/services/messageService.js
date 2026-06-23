@@ -18,7 +18,7 @@ const userInclude = (alias) => ({
     {
       model: Student,
       as: 'studentProfile',
-      attributes: ['firstName', 'lastName', 'profilePictureUrl'],
+      attributes: ['id', 'firstName', 'lastName', 'profilePictureUrl'],
       required: false,
     },
     {
@@ -39,6 +39,7 @@ const formatParticipant = (user) => {
   const c = user.companyProfile;
   return {
     id: user.id,
+    studentId: s?.id,
     role: user.role,
     email: user.email,
     displayName: s
@@ -118,6 +119,8 @@ const messageService = {
    * Envía un mensaje directo de sender (req.user) a receiverId, aplicando las reglas.
    */
   async sendMessage(sender, receiverId, content) {
+    const emailService = require('./emailService');
+
     if (sender.id === receiverId) {
       throw httpError('No puedes enviarte mensajes a ti mismo.', 400);
     }
@@ -140,6 +143,32 @@ const messageService = {
       content: content.trim(),
       isRead: false,
     });
+
+    // Enviar email transaccional (fire and forget)
+    const senderName = sender.companyProfile ? (sender.companyProfile.tradeName || sender.companyProfile.legalName) :
+                       (sender.studentProfile ? `${sender.studentProfile.firstName} ${sender.studentProfile.lastName}` : sender.email);
+    const conversationUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/inbox/${sender.id}`;
+    
+    emailService.sendNewMessageReceived({
+      to: receiver.email,
+      senderName,
+      messagePreview: content.substring(0, 50) + (content.length > 50 ? '...' : ''),
+      conversationUrl,
+    }).catch(err => console.error('Error enviando email de nuevo mensaje:', err));
+
+    // WhatsApp si el receptor es estudiante
+    if (receiver.studentProfile) {
+      const { AlertSettings } = require('../models');
+      const whatsappService = require('./whatsappService');
+      AlertSettings.findOne({ where: { studentId: receiver.studentProfile.id } }).then(settings => {
+        if (settings?.whatsappEnabled && receiver.studentProfile.phoneNumber) {
+           whatsappService.sendWhatsAppNotification(
+             receiver.studentProfile.phoneNumber,
+             `¡Hola ${receiver.studentProfile.firstName}! Tienes un nuevo mensaje de ${senderName}. Ingresa a PracHub para responder: ${conversationUrl}`
+           ).catch(() => {});
+        }
+      }).catch(() => {});
+    }
 
     return message;
   },
@@ -202,7 +231,7 @@ const messageService = {
         {
           model: Student,
           as: 'studentProfile',
-          attributes: ['firstName', 'lastName', 'profilePictureUrl'],
+          attributes: ['id', 'firstName', 'lastName', 'profilePictureUrl'],
           required: false,
         },
         {
