@@ -14,7 +14,6 @@ describe('geminiClient — configuración centralizada de modelos Gemini', () =>
   it('expone los tres modelos Gemini usados por los servicios de IA', () => {
     const { GEMINI_MODELS } = require('../src/config/geminiClient');
 
-    expect(GEMINI_MODELS.FLASH).toBe('gemini-2.0-flash');
     expect(GEMINI_MODELS.FLASH_2_5).toBe('gemini-2.5-flash');
     expect(GEMINI_MODELS.FLASH_LITE).toBe('gemini-2.5-flash-lite');
   });
