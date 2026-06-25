@@ -33,10 +33,21 @@ jest.mock('../src/models', () => {
     Offer: buildModel(),
     Notification: buildModel({ sync: jest.fn().mockResolvedValue(true) }),
     DirectMessage: buildModel(),
+    AlertSettings: buildModel({ findOne: jest.fn().mockResolvedValue(null) }),
     PasswordResetToken: buildModel(),
     EmailVerificationToken: buildModel(),
   };
 });
+
+// Mock de emailService y whatsappService para evitar llamadas de red reales
+jest.mock('../src/services/emailService', () => ({
+  sendNewMessageReceived: jest.fn().mockResolvedValue(true),
+  sendApplicationStatusChanged: jest.fn().mockResolvedValue(true),
+}));
+
+jest.mock('../src/services/whatsappService', () => ({
+  sendWhatsAppNotification: jest.fn().mockResolvedValue(true),
+}));
 
 const app = require('../src/app');
 const { User, Student, Company, Application, DirectMessage, Notification } = require('../src/models');

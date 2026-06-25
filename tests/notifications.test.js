@@ -2,6 +2,7 @@ const emailService = require('../src/services/emailService');
 const whatsappService = require('../src/services/whatsappService');
 
 jest.mock('nodemailer', () => ({
+  createTestAccount: jest.fn().mockResolvedValue({ user: 'test-user', pass: 'test-pass' }),
   createTransport: jest.fn().mockReturnValue({
     sendMail: jest.fn().mockResolvedValue({ messageId: 'test-id' })
   }),

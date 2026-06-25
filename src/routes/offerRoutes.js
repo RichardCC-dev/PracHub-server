@@ -29,22 +29,22 @@ const offerValidation = [
   body('modality')
     .isIn(['remote', 'in_person', 'hybrid']).withMessage('Modalidad inválida.'),
   body('requirements')
-    .optional()
+    .optional({ nullable: true })
     .trim()
     .isLength({ max: 2000 }).withMessage('Los requisitos no pueden exceder 2000 caracteres.')
     .escape(),
   body('duration')
-    .optional()
+    .optional({ nullable: true })
     .trim()
     .isLength({ max: 50 }).withMessage('La duración no puede exceder 50 caracteres.')
     .escape(),
   body('compensation')
-    .optional()
+    .optional({ nullable: true })
     .trim()
     .isLength({ max: 100 }).withMessage('La compensación no puede exceder 100 caracteres.')
     .escape(),
   body('careerTags')
-    .optional()
+    .optional({ nullable: true })
     .isArray({ max: 5 }).withMessage('Las carreras afines no pueden ser más de 5.'),
   body('careerTags.*')
     .optional()
@@ -52,7 +52,7 @@ const offerValidation = [
     .isLength({ max: 100 }).withMessage('Cada carrera afín no puede exceder 100 caracteres.')
     .escape(),
   body('expiresAt')
-    .optional()
+    .optional({ nullable: true })
     .isISO8601().withMessage('La fecha de expiración debe ser una fecha válida.'),
 ];
 

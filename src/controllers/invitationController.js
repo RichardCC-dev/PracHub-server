@@ -100,7 +100,7 @@ const invitationController = {
    */
   async getInvitations(req, res) {
     try {
-      const studentId = req.user.studentId; // Del JWT (relación user-student)
+      const studentId = req.user.studentProfile?.id; // De la relación user-student
       const { status = 'PENDING' } = req.query;
 
       if (!studentId) {
@@ -156,7 +156,7 @@ const invitationController = {
 
       const { id } = req.params;
       const { response } = req.body;
-      const studentId = req.user.studentId; // Del JWT
+      const studentId = req.user.studentProfile?.id; // De la relación user-student
 
       if (!studentId) {
         return res.status(400).json({
@@ -226,7 +226,7 @@ const invitationController = {
   async getInvitationStats(req, res) {
     try {
       const { offerId } = req.params;
-      const companyId = req.user.companyId; // Del JWT
+      const companyId = req.user.companyProfile?.id; // De la relación user-company
 
       if (!companyId) {
         return res.status(400).json({

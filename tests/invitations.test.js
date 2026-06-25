@@ -12,7 +12,7 @@ jest.mock('../src/models', () => ({
   DirectMessage: { create: jest.fn() },
   Offer: { findByPk: jest.fn() },
   Student: { findByPk: jest.fn() },
-  Application: { create: jest.fn() },
+  Application: { create: jest.fn(), findOne: jest.fn() },
   Resume: { findOne: jest.fn() },
   User: {}
 }));
@@ -40,6 +40,7 @@ describe('Invitation Service - Invitación Directa (HU-18)', () => {
 
     // Validar duplicados
     InvitationToApply.findOne.mockResolvedValue(null);
+    Application.findOne.mockResolvedValue(null); // No ha aplicado ya
 
     // Mock Create
     DirectMessage.create.mockResolvedValue({ id: 100, content: 'Unete a nosotros' });
@@ -78,6 +79,6 @@ describe('Invitation Service - Invitación Directa (HU-18)', () => {
     Student.findByPk.mockResolvedValue({ id: 5, user: { id: 20 } });
     InvitationToApply.findOne.mockResolvedValue({ id: 99 }); // Ya existe
 
-    await expect(invitationService.createInvitation(10, 5, 1, 'Hola')).rejects.toThrow('Student has already been invited to this offer');
+    await expect(invitationService.createInvitation(10, 5, 1, 'Hola')).rejects.toThrow('Invitation already exists for this student-offer pair');
   });
 });

@@ -48,6 +48,7 @@ const alertService = {
       'frequency',
       'emailEnabled',
       'platformEnabled',
+      'whatsappEnabled',
       'dailyDigestTime',
       'weeklyDigestDay',
     ];

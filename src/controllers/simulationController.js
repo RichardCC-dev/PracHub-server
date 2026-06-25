@@ -35,6 +35,7 @@ exports.startSimulation = async (req, res) => {
 };
 
 exports.sendMessage = async (req, res) => {
+  let simulation = null;
   try {
     const { id } = req.params;
     const { message } = req.body;
@@ -42,7 +43,7 @@ exports.sendMessage = async (req, res) => {
 
     const student = await Student.findOne({ where: { userId } });
     
-    const simulation = await Simulation.findOne({ 
+    simulation = await Simulation.findOne({ 
       where: { id, studentId: student.id } 
     });
 

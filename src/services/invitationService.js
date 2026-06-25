@@ -135,7 +135,7 @@ const invitationService = {
           },
           {
             association: 'message',
-            attributes: ['id', 'senderId', 'content', 'createdAt'],
+            attributes: { exclude: ['updatedAt', 'isRead'] },
             include: [
               {
                 association: 'sender',
@@ -144,7 +144,7 @@ const invitationService = {
             ],
           },
         ],
-        order: [['createdAt', 'DESC']],
+        order: [['created_at', 'DESC']],
       });
 
       return invitations;
@@ -199,7 +199,7 @@ const invitationService = {
         // Obtener CV activo del estudiante
         const resume = await Resume.findOne({
           where: { studentId },
-          order: [['createdAt', 'DESC']],
+          order: [['created_at', 'DESC']],
         });
 
         if (!resume) {

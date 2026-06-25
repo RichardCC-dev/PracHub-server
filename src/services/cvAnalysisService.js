@@ -138,8 +138,6 @@ Carreras afines: ${offer.careerTags ? JSON.stringify(offer.careerTags) : 'No esp
 };
 
 const analyzeCVWithAI = async (resume, offer = null, company = null) => {
-  const model = genAI.getGenerativeModel({ model: GEMINI_MODELS.FLASH_LITE });
-
   const resumeText = formatResumeForAnalysis(resume);
   const offerContext = formatOfferForContext(offer, company);
 
@@ -192,27 +190,100 @@ ${offer ? 'Considera específicamente qué tan bien el CV se alinea con los requ
 
 Devuelve ÚNICAMENTE el JSON válido, sin markdown, sin explicaciones adicionales.`;
 
-  try {
-    const result = await model.generateContent(prompt);
-    const response = result.response;
-    const text = response.text();
+  // Modelos a intentar en orden: FLASH_LITE (rápido) → FLASH (más estable) como fallback.
+  // Si FLASH_LITE devuelve 503 (alta demanda), reintentamos con backoff y luego caemos a FLASH.
+  const modelOptions = [
+    { name: GEMINI_MODELS.FLASH_LITE, retries: 2, delayMs: 1500 },
+    { name: GEMINI_MODELS.FLASH_2_5, retries: 1, delayMs: 1000 },
+  ];
 
-    // Limpiar posible formato markdown
-    const jsonMatch = text.match(/\{[\s\S]*\}/);
-    const jsonString = jsonMatch ? jsonMatch[0] : text;
+  const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-    const analysis = JSON.parse(jsonString);
+  // Extrae el retryDelay (en segundos) del mensaje de error 429 de Gemini.
+  // Ej: "Please retry in 8.882153935s" → 8821ms (redondeado + margen)
+  const extractRetryDelayMs = (error) => {
+    const msg = error?.message || '';
+    const match = msg.match(/retry in ([\d.]+)s/i) || msg.match(/retryDelay["':\s]+(\d+)s/i);
+    if (match) return Math.ceil(parseFloat(match[1]) * 1000) + 500; // +500ms margen
+    return null;
+  };
 
-    // Validar estructura
-    if (typeof analysis.overallScore !== 'number' || !Array.isArray(analysis.observations)) {
-      throw new Error('La respuesta de la IA no tiene el formato esperado');
+  // Detecta si el error 429 es por cuota diaria agotada (no recuperable con retry)
+  const isDailyQuotaExhausted = (error) => {
+    const msg = error?.message || '';
+    return /PerDay|daily|limit: 0/i.test(msg);
+  };
+
+  for (const opt of modelOptions) {
+    for (let attempt = 0; attempt <= opt.retries; attempt++) {
+      try {
+        const model = genAI.getGenerativeModel({ model: opt.name });
+        const result = await model.generateContent(prompt);
+        const response = result.response;
+        const text = response.text();
+
+        // Limpiar posible formato markdown
+        const jsonMatch = text.match(/\{[\s\S]*\}/);
+        const jsonString = jsonMatch ? jsonMatch[0] : text;
+
+        const analysis = JSON.parse(jsonString);
+
+        // Validar estructura
+        if (typeof analysis.overallScore !== 'number' || !Array.isArray(analysis.observations)) {
+          throw new Error('La respuesta de la IA no tiene el formato esperado');
+        }
+
+        if (attempt > 0 || opt.name !== GEMINI_MODELS.FLASH_LITE) {
+          logger.info(`[cvAnalysisService] Análisis exitoso con modelo ${opt.name} (intento ${attempt + 1})`);
+        }
+
+        return analysis;
+      } catch (error) {
+        const msg = error?.message || '';
+        const is503 = error?.status === 503 || /503|high demand|Service Unavailable/i.test(msg);
+        const is429 = error?.status === 429 || /429|quota|Too Many Requests/i.test(msg);
+        const isRateLimit = is503 || is429;
+        const isLastAttempt = attempt === opt.retries;
+        const isLastModel = opt === modelOptions[modelOptions.length - 1];
+
+        // 429 por cuota diaria agotada → no recuperable, dar mensaje claro
+        if (is429 && isDailyQuotaExhausted(error)) {
+          logger.error(`[cvAnalysisService] Cuota diaria de Gemini agotada para ${opt.name}.`);
+          if (isLastModel) {
+            throw new Error('La cuota diaria de IA se ha agotado. Intenta nuevamente mañana o contacta al administrador.');
+          }
+          // Probar siguiente modelo por si tiene cuota disponible
+          break;
+        }
+
+        // 503 o 429 (rate limit por minuto) → reintentar con backoff
+        if (isRateLimit && !isLastAttempt) {
+          // Para 429, respetar el retryDelay de la API si está disponible
+          const apiDelay = is429 ? extractRetryDelayMs(error) : null;
+          const delay = apiDelay || opt.delayMs;
+          logger.warn(`[cvAnalysisService] Modelo ${opt.name} devolvió ${is429 ? 429 : 503} (intento ${attempt + 1}/${opt.retries + 1}). Reintentando en ${delay}ms...`);
+          await sleep(delay);
+          continue;
+        }
+
+        // Último intento de este modelo pero hay más modelos → fallback
+        if (isRateLimit && isLastAttempt && !isLastModel) {
+          logger.warn(`[cvAnalysisService] Modelo ${opt.name} agotó reintentos. Cayendo a siguiente modelo...`);
+          break;
+        }
+
+        // Error no recuperable o último modelo agotado
+        logger.error('Error analyzing CV with AI:', error);
+        if (is429) {
+          throw new Error('El servicio de IA está saturado en este momento. Espera unos segundos e intenta nuevamente.');
+        }
+        throw new Error('No se pudo completar el análisis del CV. Intenta de nuevo más tarde.');
+      }
     }
-
-    return analysis;
-  } catch (error) {
-    logger.error('Error analyzing CV with AI:', error);
-    throw new Error('No se pudo completar el análisis del CV. Intenta de nuevo más tarde.');
   }
+
+  // No debería llegar aquí, pero por seguridad
+  throw new Error('No se pudo completar el análisis del CV. Intenta de nuevo más tarde.');
 };
 
 const saveAnalysis = async (studentId, resumeId, offerId, analysisData) => {

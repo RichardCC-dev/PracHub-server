@@ -4,12 +4,11 @@ const { GoogleGenerativeAI } = require('@google/generative-ai');
  * Nombres de modelos Gemini centralizados.
  * Cambiar aquí afecta a todos los servicios de IA del proyecto.
  *
- * @property {string} FLASH      - Modelo estable GA para mejoras de texto en CVs (aiService).
+ * @property {string} FLASH_2_5      - Modelo estable GA para mejoras de texto en CVs (aiService).
  * @property {string} FLASH_2_5  - Modelo con razonamiento extendido para simulaciones (geminiService).
  * @property {string} FLASH_LITE - Modelo ligero para análisis masivos de CVs (cvAnalysisService).
  */
 const GEMINI_MODELS = {
-  FLASH: 'gemini-2.0-flash',
   FLASH_2_5: 'gemini-2.5-flash',
   FLASH_LITE: 'gemini-2.5-flash-lite',
 };

@@ -1,4 +1,5 @@
-require('dotenv').config();
+const path = require('path');
+require('dotenv').config({ path: path.resolve(__dirname, '..', '.env') });
 const bcrypt = require('bcryptjs');
 const { User } = require('../src/models');
 
@@ -8,8 +9,8 @@ const createAdmin = async () => {
 
   if (!password) {
     console.error('❌ Debes proporcionar una contraseña. Usos:');
-    console.error('   node src/scripts/createAdmin.js <email> <password>');
-    console.error('   o define ADMIN_SEED_PASSWORD en .env');
+    console.error('   node scripts/createAdmin.js <email> <password>');
+    console.error('   o define ADMIN_SEED_PASSWORD en server/.env');
     process.exit(1);
   }
 

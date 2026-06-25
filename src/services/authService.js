@@ -75,7 +75,7 @@ const registerStudent = async (payload) => {
   const passwordHash = await bcrypt.hash(payload.password, 12);
   const university = payload.university || getUniversityByEmail(email) || 'No especificada';
 
-  return sequelize.transaction(async (transaction) => {
+  const result = await sequelize.transaction(async (transaction) => {
     const user = await User.create(
       {
         email,
@@ -101,19 +101,22 @@ const registerStudent = async (payload) => {
       { transaction },
     );
 
-    const result = {
+    return {
       token: signToken(user),
       user: sanitizeUser(user, student),
     };
+  });
 
+  // Enviar email de verificación DESPUÉS del commit (no bloquea la transacción ni la respuesta)
+  setImmediate(async () => {
     try {
-      await sendEmailVerification({ user, email });
+      await sendEmailVerification({ user: { id: result.user.id, studentProfile: result.user.studentProfile }, email });
     } catch (err) {
       logger.error('Email verification could not be sent:', err.message);
     }
-
-    return result;
   });
+
+  return result;
 };
 
 const sanitizeCompany = (company) => ({

@@ -176,27 +176,33 @@ const registerCompany = async (payload) => {
 
   logger.info('[CompanyService] Transacción completada, enviando emails...');
 
-  // Enviar emails fuera de la transacción para evitar deadlocks
-  try {
-    await sendEmailVerification({
-      user: result.user,
-      email,
-      companyName: result.company.legalName,
-    });
-    logger.info('[CompanyService] Email de verificación enviado a:', email);
-  } catch (err) {
-    logger.error('Company verification email could not be sent:', err.message);
-  }
+  const userId = result.user.id;
+  const companyName = result.company.legalName;
+  const responsibleName = result.company.responsibleName;
 
-  try {
-    await emailService.sendCompanyRegistrationConfirmationEmail({
-      email,
-      companyName: result.company.legalName,
-      responsibleName: result.company.responsibleName,
-    });
-  } catch (err) {
-    logger.error('Company registration confirmation email could not be sent:', err.message);
-  }
+  // Enviar emails en segundo plano (no bloquean la respuesta HTTP)
+  setImmediate(async () => {
+    try {
+      await sendEmailVerification({
+        user: { id: userId },
+        email,
+        companyName,
+      });
+      logger.info('[CompanyService] Email de verificación enviado a:', email);
+    } catch (err) {
+      logger.error('Company verification email could not be sent:', err.message);
+    }
+
+    try {
+      await emailService.sendCompanyRegistrationConfirmationEmail({
+        email,
+        companyName,
+        responsibleName,
+      });
+    } catch (err) {
+      logger.error('Company registration confirmation email could not be sent:', err.message);
+    }
+  });
 
   return {
     token: result.token,
