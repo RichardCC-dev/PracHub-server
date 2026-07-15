@@ -1,7 +1,7 @@
 const express = require('express');
 const authenticate = require('../middlewares/authMiddleware');
 const authorize = require('../middlewares/authorize');
-const { upload, handleUploadError } = require('../middlewares/uploadMiddleware');
+const { upload, uploadToCloudinary, handleUploadError } = require('../middlewares/uploadMiddleware');
 
 const router = express.Router();
 
@@ -13,6 +13,7 @@ router.post(
   authorize('company'),
   upload.single('logo'),
   handleUploadError,
+  uploadToCloudinary,
   (req, res) => {
     if (!req.file) {
       return res.status(400).json({
@@ -22,7 +23,7 @@ router.post(
 
     // Construir URL pública del archivo (apuntando al backend, no al frontend)
     const baseUrl = process.env.API_URL || `http://localhost:${process.env.PORT || 4000}`;
-    const fileUrl = `${baseUrl}/uploads/logos/${req.file.filename}`;
+    const fileUrl = req.file.location || `${baseUrl}/uploads/logos/${req.file.filename}`;
 
     res.status(200).json({
       message: 'Logo subido correctamente.',

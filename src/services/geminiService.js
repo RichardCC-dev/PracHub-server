@@ -69,7 +69,7 @@ const chatWithGemini = async (chatHistory, simulatedRole, newMessage, career, se
   }
 
   // --- SOLUCIÓN AL ERROR 400: Filtro de alternancia estricta ---
-  let sanitizedHistory = [];
+  const sanitizedHistory = [];
   let expectedRole = 'user';
 
   for (let i = 0; i < history.length; i++) {
@@ -104,7 +104,7 @@ const chatWithGemini = async (chatHistory, simulatedRole, newMessage, career, se
         const seconds = parseInt(retryInfo.retryDelay.replace('s', ''), 10);
         return isNaN(seconds) ? 30000 : (seconds + 2) * 1000;
       }
-    } catch (_) {}
+    } catch {}
     return 30000;
   };
 

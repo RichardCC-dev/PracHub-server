@@ -210,10 +210,6 @@ const savedCompanyController = {
     body('notificationsEnabled').isBoolean().withMessage('notificationsEnabled debe ser booleano'),
   ],
 
-  validatePagination: [
-    param('limit').optional().isInt({ min: 1, max: 50 }),
-    param('offset').optional().isInt({ min: 0 }),
-  ],
 };
 
 module.exports = savedCompanyController;

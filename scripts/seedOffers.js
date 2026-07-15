@@ -1,23 +1,10 @@
-const { Sequelize } = require('sequelize');
 const dotenv = require('dotenv');
-const fs = require('fs');
-const path = require('path');
+const bcrypt = require('bcryptjs');
 
 // Cargar variables de entorno
 dotenv.config();
 
-const sequelize = new Sequelize(
-  process.env.DB_NAME,
-  process.env.DB_USER,
-  process.env.DB_PASS,
-  {
-    host: process.env.DB_HOST,
-    dialect: 'mysql',
-    logging: false
-  }
-);
-
-const { Company, Offer } = require('../src/models');
+const { sequelize, User, Company, Offer } = require('../src/models');
 
 async function seed() {
   try {
@@ -32,23 +19,36 @@ async function seed() {
       console.log('No se encontraron empresas. Creando empresa de prueba...');
       
       // Crear un usuario para la empresa
-      const { User } = require('../src/models');
+      const passwordHash = await bcrypt.hash(
+        process.env.SEED_COMPANY_PASSWORD || 'password123',
+        12
+      );
       const user = await User.create({
         email: 'empresa_test@ejemplo.com',
-        password: 'password123', // En un caso real esto debería estar hasheado
+        passwordHash,
         role: 'company',
-        isActive: true
+        authProvider: 'local',
+        isEmailVerified: true,
       });
 
       company = await Company.create({
         userId: user.id,
+        taxId: '20123456789',
         tradeName: 'Tech Solutions SAC',
         legalName: 'Tech Solutions SAC',
-        ruc: '20123456789',
         description: 'Empresa líder en desarrollo de software y tecnología.',
-        website: 'www.techsolutions.com',
+        websiteUrl: 'https://www.techsolutions.com',
         industry: 'Tecnología',
-        address: 'Av. Javier Prado Este 123, San Borja, Lima'
+        companySize: 'small',
+        country: 'Perú',
+        city: 'Lima',
+        address: 'Av. Javier Prado Este 123, San Borja, Lima',
+        responsibleName: 'Ana Torres',
+        responsiblePosition: 'Jefa de Recursos Humanos',
+        responsiblePhone: '999888777',
+        verificationStatus: 'verified',
+        isVerified: true,
+        canPublishOffers: true,
       });
       
       console.log(`Empresa de prueba creada con ID: ${company.id}`);
@@ -64,7 +64,7 @@ async function seed() {
         requirements: '- Conocimientos sólidos en JavaScript/TypeScript\n- Familiaridad con React y Node.js\n- Nociones básicas de bases de datos relacionales (MySQL/PostgreSQL)\n- Disponibilidad de 30 horas semanales',
         area: 'Tecnología / Desarrollo',
         careerTags: ['Ingeniería de Software', 'Ingeniería de Sistemas', 'Ciencias de la Computación'],
-        modality: 'remoto',
+        modality: 'remote',
         duration: '6 meses',
         compensation: 'S/ 1,200 mensual',
         status: 'approved' // Estado aprobado para que sean visibles y recomendables
@@ -76,7 +76,7 @@ async function seed() {
         requirements: '- Conocimiento intermedio/avanzado de Python (Pandas, Numpy, Scikit-learn)\n- Nociones de NLP (Natural Language Processing)\n- Inglés técnico nivel intermedio\n- Deseable: experiencia previa con TensorFlow o PyTorch',
         area: 'Tecnología / Data Science',
         careerTags: ['Ciencias de la Computación', 'Ingeniería Estadística', 'Ingeniería de Sistemas', 'Matemática'],
-        modality: 'híbrido',
+        modality: 'hybrid',
         duration: '6 meses',
         compensation: 'S/ 1,500 mensual',
         status: 'approved'
@@ -88,7 +88,7 @@ async function seed() {
         requirements: '- Manejo avanzado de Figma o Adobe XD\n- Conocimientos en principios de diseño centrado en el usuario\n- Armado de prototipos interactivos\n- Portafolio de proyectos académicos (indispensable)',
         area: 'Diseño',
         careerTags: ['Diseño Gráfico', 'Ingeniería de Sistemas', 'Comunicaciones'],
-        modality: 'remoto',
+        modality: 'remote',
         duration: '3 meses',
         compensation: 'S/ 1,025 mensual',
         status: 'approved'
@@ -100,7 +100,7 @@ async function seed() {
         requirements: '- Estudiante de últimos ciclos de Marketing o afines\n- Excelente redacción y ortografía\n- Manejo de herramientas de diseño básicas (Canva)\n- Conocimiento básico de Google Analytics y Meta Ads',
         area: 'Marketing',
         careerTags: ['Marketing', 'Comunicaciones', 'Administración'],
-        modality: 'presencial',
+        modality: 'in_person',
         duration: '6 meses',
         compensation: 'S/ 1,025 mensual',
         status: 'approved'
@@ -112,7 +112,7 @@ async function seed() {
         requirements: '- Estudiante de Psicología Organizacional o Administración\n- Interés por el mundo de la tecnología\n- Excelentes habilidades de comunicación\n- Proactividad y organización',
         area: 'Recursos Humanos',
         careerTags: ['Psicología', 'Administración', 'Gestión de Recursos Humanos'],
-        modality: 'híbrido',
+        modality: 'hybrid',
         duration: '6 meses',
         compensation: 'S/ 1,100 mensual',
         status: 'approved'

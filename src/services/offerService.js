@@ -39,19 +39,6 @@ const getCompanyOffers = async (companyId) => {
   return offers;
 };
 
-const getOfferById = async (offerId, companyId) => {
-  const where = { id: offerId };
-  if (companyId) where.companyId = companyId;
-
-  const offer = await Offer.findOne({ where });
-
-  if (!offer) {
-    throw Object.assign(new Error('Oferta no encontrada.'), { statusCode: 404 });
-  }
-
-  return offer;
-};
-
 /**
  * Obtener el detalle público de una oferta (estudiantes / acceso por URL).
  * Solo devuelve ofertas aprobadas e incluye los datos públicos de la empresa.
@@ -167,7 +154,6 @@ const getAllOffers = async (filters = {}) => {
 module.exports = {
   createOffer,
   getCompanyOffers,
-  getOfferById,
   getPublicOfferById,
   updateOffer,
   closeOffer,

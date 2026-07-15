@@ -90,7 +90,7 @@ exports.sendMessage = async (req, res) => {
         simulation.chatHistory = [...currentHistory, { role: 'user', content: req.body.message }, waitMsg];
         await simulation.save();
         return res.json({ simulation, aiResponse: waitMsg, rateLimited: true });
-      } catch (_) {}
+      } catch {}
       return res.status(429).json({ error: 'El servicio de IA está ocupado. Espera unos segundos y reenvía tu mensaje.' });
     }
     res.status(500).json({ error: 'Error al enviar mensaje' });
@@ -172,8 +172,6 @@ exports.getSimulationStats = async (req, res) => {
     if (!student) {
       return res.status(404).json({ error: 'Perfil de estudiante no encontrado' });
     }
-
-    const { Sequelize } = require('sequelize');
 
     const completedSims = await Simulation.findAll({
       where: { studentId: student.id, status: 'completed' },

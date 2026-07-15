@@ -188,13 +188,13 @@ async function run() {
     console.log('\n🟢 Conectado a la base de datos.\n');
 
     console.log('1️⃣  Creando/verificando estudiante...');
-    const { user: studentUser, student } = await ensureStudent();
+    const { student } = await ensureStudent();
 
     console.log('\n2️⃣  Creando/verificando empresa...');
     const { company } = await ensureCompany();
 
     console.log('\n3️⃣  Configurando alertas del estudiante...');
-    let settings = await AlertSettings.findOne({ where: { studentId: student.id } });
+    const settings = await AlertSettings.findOne({ where: { studentId: student.id } });
     if (!settings) {
       await AlertSettings.create({
         studentId: student.id,

@@ -1,6 +1,5 @@
 const authService = require('../services/authService');
 const emailService = require('../services/emailService');
-const { User } = require('../models');
 const logger = require('../utils/logger');
 
 const login = async (req, res, next) => {

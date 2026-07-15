@@ -115,7 +115,9 @@ app.use('/api/company-metrics', companyMetricsRoutes);
 app.use('/api/invitations', invitationRoutes);
 
 // Configuración de Swagger
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpecs, { explorer: true }));
+if (!isProd || process.env.ENABLE_SWAGGER === 'true') {
+  app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpecs, { explorer: true }));
+}
 
 app.use(errorHandler);
 

@@ -312,7 +312,6 @@ const sendOfferMatchAlert = async ({
   firstName,
   offerTitle,
   companyName,
-  compatibilityScore,
   isFromFollowedCompany,
   offerId,
 }) => {

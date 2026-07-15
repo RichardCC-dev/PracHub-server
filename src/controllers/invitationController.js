@@ -1,6 +1,6 @@
 const { validationResult } = require('express-validator');
 const invitationService = require('../services/invitationService');
-const { InvitationToApply, Offer } = require('../models');
+const { Offer } = require('../models');
 const logger = require('../utils/logger');
 
 /**

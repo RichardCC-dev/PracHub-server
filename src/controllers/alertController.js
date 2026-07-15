@@ -1,4 +1,4 @@
-const { body, param, query } = require('express-validator');
+const { body, query } = require('express-validator');
 const alertService = require('../services/alertService');
 const { Student } = require('../models');
 
