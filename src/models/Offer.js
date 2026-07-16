@@ -14,7 +14,7 @@ const Offer = sequelize.define(
       allowNull: false,
       field: 'company_id',
       references: {
-        model: 'companies',
+        model: 'Companies',
         key: 'id',
       },
     },
@@ -73,7 +73,7 @@ const Offer = sequelize.define(
       allowNull: true,
       field: 'moderated_by',
       references: {
-        model: 'users',
+        model: 'Users',
         key: 'id',
       },
     },

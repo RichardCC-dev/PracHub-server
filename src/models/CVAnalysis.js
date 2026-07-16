@@ -14,7 +14,7 @@ const CVAnalysis = sequelize.define(
       allowNull: false,
       field: 'student_id',
       references: {
-        model: 'students',
+        model: 'Students',
         key: 'id',
       },
     },
@@ -23,7 +23,7 @@ const CVAnalysis = sequelize.define(
       allowNull: true,
       field: 'resume_id',
       references: {
-        model: 'resumes',
+        model: 'Resumes',
         key: 'id',
       },
     },

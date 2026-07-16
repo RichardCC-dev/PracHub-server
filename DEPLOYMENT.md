@@ -56,36 +56,36 @@ Nunca subas `.env` al repositorio.
 Configurar estas variables en el servicio Node de Railway. Los valores de ejemplo
 solo explican el formato; reemplázalos por valores reales.
 
-| Variable | Valor para producción | Requerida | Notas |
-|---|---|---:|---|
-| `NODE_ENV` | `production` | Sí | Activa HSTS y los límites de rate limiting. |
-| `PORT` | No fijar manualmente | Sí | Railway la inyecta automáticamente. El código usa `4000` solo como fallback local. |
-| `CLIENT_URL` | `https://<frontend>.vercel.app` | Sí | Origen permitido por CORS. Sin `/` final. |
-| `FRONTEND_URL` | `https://<frontend>.vercel.app` | Sí | URL usada en enlaces de notificaciones. |
-| `APP_URL` | `https://<frontend>.vercel.app` | Sí | URL base de enlaces enviados por email. |
-| `API_URL` | `https://<backend>.up.railway.app` | Sí | URL pública del backend, sin `/api`. Usada para construir URLs de logos locales. |
-| `ENABLE_SWAGGER` | `false` | No | Swagger deshabilitado en producción salvo `true` explícito. |
-| `UPLOAD_PROVIDER` | `local` | No | `local` (por defecto) o `cloudinary`. Ver sección 7. |
-| `CLOUDINARY_*` | — | Solo si `cloudinary` | `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET`. |
-| `JWT_SECRET` | Cadena aleatoria de 32+ caracteres | Sí | No reutilizar el valor de desarrollo. |
-| `DB_HOST` | Host interno de MySQL | Sí | Usar la referencia interna de Railway, no `localhost`. |
-| `DB_PORT` | Puerto interno de MySQL | Sí | Valor entregado por el servicio MySQL. |
-| `DB_NAME` | Nombre entregado por MySQL | Sí | Debe coincidir con la base creada. |
-| `DB_USER` | Usuario entregado por MySQL | Sí | No tiene que ser `root`. |
-| `DB_PASSWORD` | Contraseña entregada por MySQL | Sí | El nombre correcto en el código es `DB_PASSWORD`, no `DB_PASS`. |
-| `GEMINI_API_KEY` | Clave de Google Gemini | Para IA | Solo en Railway; nunca como variable `VITE_`. |
-| `SMTP_HOST` | Host SMTP | Para emails | En producción el correo debe estar configurado. |
-| `SMTP_PORT` | `587` o `465` | Para emails | Depende del proveedor. |
-| `SMTP_SECURE` | `false` para 587, `true` para 465 | Para emails | Texto `true` o `false`. |
-| `SMTP_USER` | Usuario SMTP | Para emails | |
-| `SMTP_PASS` | Contraseña SMTP | Para emails | Usar un *app password* si el proveedor lo requiere. |
-| `SMTP_FROM` | Remitente verificado | Para emails | Ej.: `PracHub <noreply@dominio.com>`. |
-| `ADMIN_ACCESS_SECRET` | Cadena aleatoria | Sí para admin | Debe coincidir con `VITE_ADMIN_PORTAL_KEY` del cliente. |
-| `ADMIN_ALERT_EMAIL` | Email del administrador | Recomendado | Destinatario de alertas administrativas. |
-| `ADMIN_SEED_EMAIL` | Email inicial | Opcional | Usado por `scripts/createAdmin.js`. |
-| `ADMIN_SEED_PASSWORD` | Contraseña inicial | Opcional | No dejar contraseña de ejemplo en producción. |
-| `LOG_LEVEL` | `info` | Recomendado | `warn` o `error` para menos ruido. |
-| `SEED_COMPANY_PASSWORD` | Contraseña temporal | Solo seed | La usa `scripts/seedOffers.js`. |
+| Variable                  | Valor para producción                |             Requerida | Notas                                                                                 |
+| ------------------------- | ------------------------------------- | --------------------: | ------------------------------------------------------------------------------------- |
+| `NODE_ENV`              | `production`                        |                   Sí | Activa HSTS y los límites de rate limiting.                                          |
+| `PORT`                  | No fijar manualmente                  |                   Sí | Railway la inyecta automáticamente. El código usa`4000` solo como fallback local. |
+| `CLIENT_URL`            | `https://<frontend>.vercel.app`     |                   Sí | Origen permitido por CORS. Sin`/` final.                                            |
+| `FRONTEND_URL`          | `https://<frontend>.vercel.app`     |                   Sí | URL usada en enlaces de notificaciones.                                               |
+| `APP_URL`               | `https://<frontend>.vercel.app`     |                   Sí | URL base de enlaces enviados por email.                                               |
+| `API_URL`               | `https://<backend>.up.railway.app`  |                   Sí | URL pública del backend, sin`/api`. Usada para construir URLs de logos locales.    |
+| `ENABLE_SWAGGER`        | `false`                             |                    No | Swagger deshabilitado en producción salvo`true` explícito.                        |
+| `UPLOAD_PROVIDER`       | `local`                             |                    No | `local` (por defecto) o `cloudinary`. Ver sección 7.                             |
+| `CLOUDINARY_*`          | —                                    | Solo si`cloudinary` | `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET`.         |
+| `JWT_SECRET`            | Cadena aleatoria de 32+ caracteres    |                   Sí | No reutilizar el valor de desarrollo.                                                 |
+| `DB_HOST`               | Host interno de MySQL                 |                   Sí | Usar la referencia interna de Railway, no`localhost`.                               |
+| `DB_PORT`               | Puerto interno de MySQL               |                   Sí | Valor entregado por el servicio MySQL.                                                |
+| `DB_NAME`               | Nombre entregado por MySQL            |                   Sí | Debe coincidir con la base creada.                                                    |
+| `DB_USER`               | Usuario entregado por MySQL           |                   Sí | No tiene que ser`root`.                                                             |
+| `DB_PASSWORD`           | Contraseña entregada por MySQL       |                   Sí | El nombre correcto en el código es`DB_PASSWORD`, no `DB_PASS`.                   |
+| `GEMINI_API_KEY`        | Clave de Google Gemini                |               Para IA | Solo en Railway; nunca como variable`VITE_`.                                        |
+| `SMTP_HOST`             | Host SMTP                             |           Para emails | En producción el correo debe estar configurado.                                      |
+| `SMTP_PORT`             | `587` o `465`                     |           Para emails | Depende del proveedor.                                                                |
+| `SMTP_SECURE`           | `false` para 587, `true` para 465 |           Para emails | Texto`true` o `false`.                                                            |
+| `SMTP_USER`             | Usuario SMTP                          |           Para emails |                                                                                       |
+| `SMTP_PASS`             | Contraseña SMTP                      |           Para emails | Usar un*app password* si el proveedor lo requiere.                                  |
+| `SMTP_FROM`             | Remitente verificado                  |           Para emails | Ej.:`PracHub <noreply@dominio.com>`.                                                |
+| `ADMIN_ACCESS_SECRET`   | Cadena aleatoria                      |        Sí para admin | Debe coincidir con`VITE_ADMIN_PORTAL_KEY` del cliente.                              |
+| `ADMIN_ALERT_EMAIL`     | Email del administrador               |           Recomendado | Destinatario de alertas administrativas.                                              |
+| `ADMIN_SEED_EMAIL`      | Email inicial                         |              Opcional | Usado por`scripts/createAdmin.js`.                                                  |
+| `ADMIN_SEED_PASSWORD`   | Contraseña inicial                   |              Opcional | No dejar contraseña de ejemplo en producción.                                       |
+| `LOG_LEVEL`             | `info`                              |           Recomendado | `warn` o `error` para menos ruido.                                                |
+| `SEED_COMPANY_PASSWORD` | Contraseña temporal                  |             Solo seed | La usa`scripts/seedOffers.js`.                                                      |
 
 Generar secretos sin inventarlos:
 
@@ -109,6 +109,7 @@ Plantilla: [`.env.example`](.env.example).
    debe ser el host interno del servicio MySQL.
 
 ### Persistencia
+
 La base necesita un volumen persistente. En una cuenta de prueba, revisa las
 reglas de retención antes de guardar datos importantes. Para una demo, exporta
 MySQL periódicamente; para producción real, usa un plan con persistencia y
@@ -208,6 +209,7 @@ guarda la URL resultante en `Company.logoUrl`.
 ## 8. Verificación posterior al despliegue
 
 ### Backend
+
 - [ ] `GET https://<backend>.up.railway.app/health` devuelve `200`.
 - [ ] Los logs no muestran errores de autenticación de MySQL.
 - [ ] `NODE_ENV=production` está configurado.
@@ -215,11 +217,12 @@ guarda la URL resultante en `Company.logoUrl`.
 - [ ] `API_URL` no termina en `/api` y no contiene `localhost`.
 - [ ] `GEMINI_API_KEY` configurada si se prueban funciones de IA.
 - [ ] SMTP configurado antes de probar verificación de email / recuperación /
-      notificaciones.
+  notificaciones.
 - [ ] `/api-docs` devuelve 404 en producción (salvo `ENABLE_SWAGGER=true`).
 - [ ] La exportación de CV a PDF funciona (Chromium con las libs de la sección 6).
 
 ### Integración
+
 - [ ] Crear una cuenta de estudiante desde el frontend.
 - [ ] Crear/habilitar una cuenta de empresa.
 - [ ] Crear una oferta y revisar su moderación desde el admin.
@@ -227,15 +230,17 @@ guarda la URL resultante en `Company.logoUrl`.
 - [ ] Probar un mensaje entre empresa y candidato.
 - [ ] Probar una función de Gemini.
 - [ ] Revisar que los emails contengan enlaces al dominio de Vercel (no
-      `localhost`).
+  `localhost`).
 
 ## 9. Solución de problemas
 
 ### Error de CORS
+
 `CLIENT_URL` debe ser el dominio exacto de Vercel, sin `/` final. Reiniciar el
 servicio. No usar `*` (el backend usa `credentials: true`).
 
 ### Error de conexión a MySQL
+
 1. `DB_HOST` no es `localhost`.
 2. `DB_PORT`, `DB_NAME`, `DB_USER` y `DB_PASSWORD` provienen del servicio MySQL
    correcto.
@@ -243,19 +248,23 @@ servicio. No usar `*` (el backend usa `credentials: true`).
 4. No se usó `DB_PASS` (el código lee `DB_PASSWORD`).
 
 ### La exportación de CV/PDF falla (Puppeteer/Chromium)
+
 Faltan librerías de Chromium. Aplica la sección 6: verifica el builder (Nixpacks
 usa `nixpacks.toml`; Railpack necesita `RAILPACK_*_APT_PACKAGES`) y redeploya.
 Revisa los logs de Railway.
 
 ### Los enlaces de emails apuntan a localhost
+
 Configurar `APP_URL` y `FRONTEND_URL`. `API_URL` solo apunta al backend y no
 reemplaza la URL del frontend.
 
 ### El logo subido desaparece tras un redeploy
+
 Comportamiento esperado con `UPLOAD_PROVIDER=local` (filesystem efímero de
 Railway). Sube el logo de nuevo o integra Cloudinary/volumen (sección 7).
 
 ### Gemini no responde
+
 Comprobar `GEMINI_API_KEY`, la cuota del proveedor y los logs de Railway (sin
 imprimir la clave).
 

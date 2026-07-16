@@ -32,9 +32,14 @@ const startServer = async () => {
   } catch (error) {
     // Sequelize envuelve el error real de MySQL en error.original / error.parent.
     // Sin estos campos, el mensaje visible suele ser genérico ("Error") y no
-    // permite diagnosticar caídas en producción.
-    logger.error('Unable to start PracHub API', {
-      error: error.message,
+    // permite diagnosticar caídas en producción. El logger de consola sólo
+    // imprime `message` + `stack`, por eso incrustamos el detalle de MySQL
+    // directamente en el mensaje para que sea visible en los logs de Railway.
+    const mysqlMsg = (error.original && error.original.message)
+      || (error.parent && error.parent.message)
+      || '';
+    const detail = mysqlMsg ? `${error.message} — ${mysqlMsg}` : error.message;
+    logger.error(`Unable to start PracHub API: ${detail}`, {
       name: error.name,
       sql: error.sql,
       original: error.original ? error.original.message : undefined,

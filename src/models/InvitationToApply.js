@@ -40,7 +40,7 @@ const InvitationToApply = sequelize.define(
       type: DataTypes.INTEGER.UNSIGNED,
       allowNull: false,
       field: 'student_id',
-      references: { model: 'students', id: 'id' },
+      references: { model: 'Students', key: 'id' },
       onDelete: 'CASCADE',
     },
     recruiterMessage: {
