@@ -30,7 +30,17 @@ const startServer = async () => {
       logger.info(`PracHub API listening on port ${PORT}`);
     });
   } catch (error) {
-    logger.error('Unable to start PracHub API', { error: error.message, stack: error.stack });
+    // Sequelize envuelve el error real de MySQL en error.original / error.parent.
+    // Sin estos campos, el mensaje visible suele ser genérico ("Error") y no
+    // permite diagnosticar caídas en producción.
+    logger.error('Unable to start PracHub API', {
+      error: error.message,
+      name: error.name,
+      sql: error.sql,
+      original: error.original ? error.original.message : undefined,
+      parent: error.parent ? error.parent.message : undefined,
+      stack: error.stack,
+    });
     process.exit(1);
   }
 };
