@@ -11,8 +11,12 @@ const hasCloudinaryCredentials = Boolean(
   && process.env.CLOUDINARY_API_SECRET
 );
 
+// El almacenamiento local también es válido en producción (p. ej. despliegues
+// sin almacenamiento en la nube). En contenedores efímeros como Railway los
+// archivos subidos NO persisten entre redeployes: usar solo para demos o hasta
+// integrar un proveedor persistente (Cloudinary, S3, volumen, etc.).
 if (process.env.NODE_ENV === 'production' && !isCloudinaryUpload) {
-  throw new Error('UPLOAD_PROVIDER=cloudinary es obligatorio en producción.');
+  console.warn('[uploads] UPLOAD_PROVIDER=local en producción: el filesystem del contenedor no es persistente entre redeployes.');
 }
 
 if (isCloudinaryUpload && !hasCloudinaryCredentials) {

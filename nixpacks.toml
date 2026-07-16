@@ -1,0 +1,37 @@
+# nixpacks.toml — configuración de build del backend para Railway.
+#
+# Instala las dependencias de sistema que Chromium (Puppeteer) necesita para
+# generar los PDF de CV dentro del contenedor de Railway. El prefijo '...'
+# extiende los paquetes que Nixpacks detecta automáticamente (Node.js, etc.).
+#
+# IMPORTANTE — Railway tiene dos builders:
+#   * Nixpacks (clásico): lee este archivo.
+#   * Railpack (nuevo, puede ser el actual): ignora este archivo y usa variables:
+#       RAILPACK_BUILD_APT_PACKAGES  = libnss3,libatk1.0-0,...   (al construir)
+#       RAILPACK_DEPLOY_APT_PACKAGES = libnss3,libatk1.0-0,...   (en runtime)
+#     Si tu servicio usa Railpack, replica la lista de aptPkgs en esas variables
+#     (ver DEPLOYMENT.md del servidor). Puedes forzar Nixpacks desde
+#     Railway → Settings → Builder si prefieres usar este archivo.
+#
+# Si un paquete no se encuentra (p. ej. libasound2 en Ubuntu 24.04, donde pasó a
+# llamarse libasound2t64), ajústalo según la imagen base de tu builder.
+
+[phases.setup]
+aptPkgs = [
+  '...',
+  'libnss3',
+  'libatk1.0-0',
+  'libatk-bridge2.0-0',
+  'libcups2',
+  'libdrm2',
+  'libxkbcommon0',
+  'libxcomposite1',
+  'libxdamage1',
+  'libxfixes3',
+  'libxrandr2',
+  'libgbm1',
+  'libasound2',
+  'libpango-1.0-0',
+  'libcairo2',
+  'fonts-liberation',
+]

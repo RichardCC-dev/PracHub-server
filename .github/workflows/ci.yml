@@ -1,0 +1,42 @@
+name: PracHub Server CI
+
+# Este workflow se activa cuando `server/` se convierte en la raíz de su propio
+# repositorio (tras el split). Dentro del monorepo original queda inactivo porque
+# GitHub solo descubre workflows en `.github/workflows/` de la raíz del repo.
+#
+# Diseñado asumiendo que la raíz del repositorio ES la API del servidor (sin
+# subdirectorio `server/`).
+
+on:
+  pull_request:
+    branches: [main, develop]
+  push:
+    branches: [main]
+
+jobs:
+  test:
+    name: Lint & Tests (Jest)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.19.0'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run lint
+        run: npm run lint
+
+      - name: Run tests
+        run: npm test
+        env:
+          NODE_ENV: test
+          JWT_SECRET: ${{ secrets.JWT_SECRET || 'ci-test-secret-1234567890-abcdef' }}
+          LOG_LEVEL: silent
