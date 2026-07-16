@@ -77,8 +77,24 @@ app.use(helmet({
   ieNoOpen: true,
 }));
 
+// Orígenes permitidos para CORS.
+// CLIENT_URL puede ser una URL única o una lista separada por comas, ej:
+//   CLIENT_URL=http://localhost:5173,https://prachub-client.vercel.app
+// Si no se define, se permiten los orígenes de desarrollo habituales.
+const allowedOrigins = (process.env.CLIENT_URL || 'http://localhost:5173,http://localhost:3000')
+  .split(',')
+  .map((o) => o.trim())
+  .filter(Boolean);
+
 app.use(cors({
-  origin: process.env.CLIENT_URL || 'http://localhost:5173',
+  origin: (origin, callback) => {
+    // Permitir peticiones sin origin (curl, Postman, server-to-server)
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error(`CORS: origen no permitido: ${origin}`));
+    }
+  },
   credentials: true,
 }));
 app.use(express.json({ limit: '10kb' }));
