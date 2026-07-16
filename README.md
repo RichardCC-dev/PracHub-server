@@ -77,6 +77,7 @@ Plantilla completa en [`.env.example`](.env.example). Variables críticas:
 | `npm run lint` | ESLint |
 | `npm run sync-db` | `sequelize.sync({ alter: true })` — **no usar en producción** sin revisar impacto |
 | `npm run seed` | Carga data masiva de prueba (admin, 8 estudiantes, 5 empresas, 15 ofertas, postulaciones, mensajes, simulaciones, notificaciones). Idempotente. |
+| `npm run seed:extra` | Carga data adicional (12 estudiantes, 5 empresas, 15 ofertas, ResumeVersions, InvitationToApply, CVAnalysis). Requiere `npm run seed` primero. |
 | `npm run seed:clean` | Elimina toda la data de prueba (trunca tablas). |
 | `node scripts/createAdmin.js` | Crea el administrador inicial |
 | `node scripts/seedOffers.js` | Carga ofertas de demo (opcional, una sola vez) |

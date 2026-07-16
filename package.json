@@ -12,6 +12,7 @@
     "lint": "eslint .",
     "sync-db": "node -e \"require('dotenv').config(); require('./src/models').sequelize.sync({ alter: true })\"",
     "seed": "node scripts/seeds/seedMassive.js",
+    "seed:extra": "node scripts/seeds/seedExtra.js",
     "seed:clean": "node scripts/seeds/seedMassive.js --clean"
   },
   "keywords": [],
