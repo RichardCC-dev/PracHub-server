@@ -45,7 +45,7 @@ Plantilla completa en [`.env.example`](.env.example). Variables críticas:
 |---|---|
 | `PORT` | Puerto del servidor. Railway lo inyecta automáticamente; local usa `4000`. |
 | `NODE_ENV` | `development` \| `production` \| `test` |
-| `CLIENT_URL` | Origen permitido por CORS (URL del frontend). |
+| `CLIENT_URL` | Origen(es) permitido(s) por CORS. Una URL o lista separada por comas (ej: `http://localhost:5173,https://app.vercel.app`). Los slashes finales se normalizan automáticamente. |
 | `FRONTEND_URL` / `APP_URL` | URL del frontend usada en enlaces de emails/notificaciones. |
 | `API_URL` | URL pública del backend (sin `/api`). Usada para construir URLs de logos. |
 | `JWT_SECRET` | Secreto JWT (mín. 32 caracteres). |
@@ -76,6 +76,8 @@ Plantilla completa en [`.env.example`](.env.example). Variables críticas:
 | `npm run test:coverage` | Jest con cobertura |
 | `npm run lint` | ESLint |
 | `npm run sync-db` | `sequelize.sync({ alter: true })` — **no usar en producción** sin revisar impacto |
+| `npm run seed` | Carga data masiva de prueba (admin, 8 estudiantes, 5 empresas, 15 ofertas, postulaciones, mensajes, simulaciones, notificaciones). Idempotente. |
+| `npm run seed:clean` | Elimina toda la data de prueba (trunca tablas). |
 | `node scripts/createAdmin.js` | Crea el administrador inicial |
 | `node scripts/seedOffers.js` | Carga ofertas de demo (opcional, una sola vez) |
 
