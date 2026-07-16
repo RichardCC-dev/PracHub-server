@@ -1,10 +1,10 @@
-const { Simulation, Student } = require('../models');
+const { Simulation, Student, Company } = require('../models');
 const geminiService = require('../services/geminiService');
 const logger = require('../utils/logger');
 
 exports.startSimulation = async (req, res) => {
   try {
-    const { simulatedRole, career, sector } = req.body;
+    const { simulatedRole, career, sector, companyId } = req.body;
     const userId = req.user.id;
 
     const student = await Student.findOne({ where: { userId } });
@@ -12,10 +12,22 @@ exports.startSimulation = async (req, res) => {
       return res.status(404).json({ error: 'Perfil de estudiante no encontrado' });
     }
 
+    // Si se especifica empresa, buscar su nombre para personalizar la IA
+    let companyName = null;
+    if (companyId) {
+      const company = await Company.findByPk(companyId, {
+        attributes: ['id', 'legalName', 'tradeName', 'industry'],
+      });
+      if (company) {
+        companyName = company.tradeName || company.legalName;
+      }
+    }
+
     // Mensaje inicial de la IA (visible en el chat)
+    const companyIntro = companyName ? ` de ${companyName}` : '';
     const initialAiMessage = {
       role: 'ai',
-      content: `Hola, soy Marco. Gracias por tomarte el tiempo. Para la posición de ${simulatedRole}, te haré algunas preguntas para conocerte mejor. Para empezar, ¿puedes presentarte brevemente y contarme qué te motivó a postular a esta área?`
+      content: `Hola, soy Marco. Gracias por tomarte el tiempo. Para la posición de ${simulatedRole}${companyIntro}, te haré algunas preguntas para conocerte mejor. Para empezar, ¿puedes presentarte brevemente y contarte qué te motivó a postular a esta área?`
     };
 
     const simulation = await Simulation.create({
@@ -23,6 +35,8 @@ exports.startSimulation = async (req, res) => {
       simulatedRole,
       career: career || null,
       sector: sector || null,
+      companyId: companyId || null,
+      companyName,
       status: 'in_progress',
       chatHistory: [initialAiMessage],
     });
@@ -59,13 +73,14 @@ exports.sendMessage = async (req, res) => {
     const userMsg = { role: 'user', content: message };
     const currentHistory = simulation.chatHistory || [];
     
-    // Obtener respuesta de Gemini (pasamos career y sector si existen)
+    // Obtener respuesta de Gemini (pasamos career, sector y companyName si existen)
     const aiResponseText = await geminiService.chatWithGemini(
       currentHistory,
       simulation.simulatedRole,
       message,
       simulation.career,
-      simulation.sector
+      simulation.sector,
+      simulation.companyName
     );
     
     const aiMsg = { role: 'ai', content: aiResponseText };
@@ -116,12 +131,12 @@ exports.endSimulation = async (req, res) => {
       return res.status(400).json({ error: 'La simulación ya está finalizada' });
     }
 
-    // Regla: Mínimo 5 minutos de simulación
-    const fiveMinutesInMs = 5 * 60 * 1000;
+    // Regla: Mínimo 3 minutos de simulación
+    const threeMinutesInMs = 3 * 60 * 1000;
     const timeElapsed = new Date() - new Date(simulation.createdAt);
     
-    if (timeElapsed < fiveMinutesInMs) {
-      const remaining = Math.ceil((fiveMinutesInMs - timeElapsed) / 60000);
+    if (timeElapsed < threeMinutesInMs) {
+      const remaining = Math.ceil((threeMinutesInMs - timeElapsed) / 60000);
       return res.status(400).json({ 
         error: `La conversación es muy corta para generar un análisis confiable. Continúa la entrevista ${remaining} minuto${remaining > 1 ? 's' : ''} más para desbloquear tu puntuación y retroalimentación.`
       });
@@ -154,7 +169,7 @@ exports.getSimulationsHistory = async (req, res) => {
     const simulations = await Simulation.findAll({
       where: { studentId: student.id },
       order: [['createdAt', 'DESC']],
-      attributes: ['id', 'simulatedRole', 'overallScore', 'aiFeedbackSummary', 'status', 'createdAt', 'updatedAt']
+      attributes: ['id', 'simulatedRole', 'career', 'sector', 'companyName', 'overallScore', 'aiFeedbackSummary', 'status', 'chatHistory', 'createdAt', 'updatedAt']
     });
 
     res.json({ simulations });

@@ -134,9 +134,9 @@ const alertService = {
           firstName: student.firstName,
           offerTitle: offer.title,
           companyName: company?.legalName || 'Empresa',
-          compatibilityScore,
           isFromFollowedCompany,
           offerId: offer.id,
+          compatibilityScore,
         });
         emailSent = true;
       } catch (error) {
@@ -157,15 +157,23 @@ const alertService = {
           ? `"${offer.title}" - ${company?.legalName || 'Empresa'}. ¡Postula ahora!`
           : `"${offer.title}" - ${company?.legalName || 'Empresa'}. ¡Revisa esta oferta!`;
 
-        await Notification.create({
-          userId: student.userId,
-          type: notificationType,
-          title,
-          message,
-          isRead: false,
-          relatedId: offer.id,
+        // Verificar si ya existe una notificación idéntica (deduplicación)
+        const existingNotif = await Notification.findOne({
+          where: { userId: student.userId, type: notificationType, relatedId: offer.id },
         });
-        notificationSent = true;
+        if (!existingNotif) {
+          await Notification.create({
+            userId: student.userId,
+            type: notificationType,
+            title,
+            message,
+            isRead: false,
+            relatedId: offer.id,
+          });
+          notificationSent = true;
+        } else {
+          notificationSent = true; // Ya fue notificado, contar como enviado
+        }
       } catch (error) {
         logger.error('Error creando notificación en plataforma:', error);
       }

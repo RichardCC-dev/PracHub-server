@@ -23,7 +23,7 @@ jest.mock('../src/models', () => ({
   Company: { findByPk: jest.fn() },
   Offer: { findAll: jest.fn(), findByPk: jest.fn() },
   Resume: { findOne: jest.fn(), findAll: jest.fn() },
-  Notification: { create: jest.fn() },
+  Notification: { create: jest.fn(), findOne: jest.fn() },
   User: {},
   Op: { gte: Symbol('gte') },
 }));
@@ -186,6 +186,7 @@ describe('Alert Service - Módulo de Alertas Compatibles y Empresas Seguidas', (
       Student.findByPk.mockResolvedValue({ id: 1, firstName: 'Maria', userId: 50, user: { email: 'm@t.com' } });
       Company.findByPk.mockResolvedValue({ legalName: 'BCP' });
       AlertHistory.create.mockResolvedValue({});
+      Notification.findOne.mockResolvedValue(null);
 
       await alertService.sendImmediateAlert(1, offerMock, 90, true);
 

@@ -28,6 +28,19 @@ const Simulation = sequelize.define('Simulation', {
     type: DataTypes.STRING,
     allowNull: true,
   },
+  companyId: {
+    type: DataTypes.INTEGER.UNSIGNED,
+    allowNull: true,
+    field: 'company_id',
+    references: {
+      model: 'Companies',
+      key: 'id',
+    },
+  },
+  companyName: {
+    type: DataTypes.STRING,
+    allowNull: true,
+  },
   overallScore: {
     type: DataTypes.INTEGER,
     allowNull: true,

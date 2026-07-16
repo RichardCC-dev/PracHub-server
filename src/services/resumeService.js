@@ -129,8 +129,11 @@ const improveFullSection = async (studentId, section) => {
     hasContent = data.items?.some(item =>
       Object.values(item).some(value => value?.trim())
     );
+  } else if (section === 'skills') {
+    hasContent = (Array.isArray(data.areas) && data.areas.some(a => (a.area?.trim() || a.skills?.trim()))) ||
+      (data.soft && data.soft.trim() !== '');
   } else {
-    hasContent = Object.values(data).some(value => value && value.trim() !== '');
+    hasContent = Object.values(data).some(value => value && typeof value === 'string' && value.trim() !== '');
   }
 
   if (!hasContent) {

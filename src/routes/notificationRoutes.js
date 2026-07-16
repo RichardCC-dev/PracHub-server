@@ -14,6 +14,12 @@ router.get('/unread-count', notificationController.getUnreadCount);
 
 router.patch('/read-all', notificationController.markAllAsRead);
 
+router.get(
+  '/:notificationId',
+  [param('notificationId').isInt({ min: 1 }), validateRequest],
+  notificationController.getNotificationById
+);
+
 router.patch(
   '/:notificationId/read',
   [param('notificationId').isInt({ min: 1 }), validateRequest],

@@ -80,10 +80,23 @@ const verifyEmail = async (req, res, next) => {
   }
 };
 
+const updateStudentProfile = async (req, res, next) => {
+  try {
+    const studentProfile = await authService.updateStudentProfile(req.user.id, req.body);
+    return res.status(200).json({
+      message: 'Perfil actualizado correctamente.',
+      studentProfile,
+    });
+  } catch (error) {
+    return next(error);
+  }
+};
+
 module.exports = {
   login,
   registerStudent,
   requestPasswordReset,
   resetPassword,
   verifyEmail,
+  updateStudentProfile,
 };

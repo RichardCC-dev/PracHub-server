@@ -41,6 +41,20 @@ const notificationController = {
       next(error);
     }
   },
+
+  async getNotificationById(req, res, next) {
+    try {
+      const userId = req.user.id;
+      const { notificationId } = req.params;
+      const notification = await notificationService.getNotificationById(notificationId, userId);
+      if (!notification) {
+        return res.status(404).json({ error: 'Notificación no encontrada' });
+      }
+      res.json({ success: true, data: notification });
+    } catch (error) {
+      next(error);
+    }
+  },
 };
 
 module.exports = notificationController;

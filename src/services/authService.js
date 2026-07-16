@@ -38,6 +38,9 @@ const sanitizeStudent = (student) => ({
   career: student.career,
   cycle: student.cycle,
   availability: student.availability,
+  bio: student.bio,
+  phoneNumber: student.phoneNumber,
+  profilePictureUrl: student.profilePictureUrl,
 });
 
 const sanitizeUser = (user, student) => ({
@@ -359,10 +362,53 @@ const verifyEmail = async (token) => {
   return result;
 };
 
+/**
+ * Actualiza el perfil de un estudiante.
+ * Solo permite actualizar campos del perfil (no email ni password).
+ */
+const updateStudentProfile = async (userId, payload) => {
+  const student = await Student.findOne({ where: { userId } });
+  if (!student) {
+    const error = new Error('Perfil de estudiante no encontrado.');
+    error.statusCode = 404;
+    throw error;
+  }
+
+  const allowedFields = ['firstName', 'lastName', 'university', 'career', 'cycle', 'availability', 'bio', 'phoneNumber', 'profilePictureUrl'];
+  const updates = {};
+  for (const field of allowedFields) {
+    if (payload[field] !== undefined) {
+      updates[field] = payload[field];
+    }
+  }
+
+  if (Object.keys(updates).length === 0) {
+    const error = new Error('No hay campos válidos para actualizar.');
+    error.statusCode = 400;
+    throw error;
+  }
+
+  await student.update(updates);
+
+  return {
+    id: student.id,
+    firstName: student.firstName,
+    lastName: student.lastName,
+    university: student.university,
+    career: student.career,
+    cycle: student.cycle,
+    availability: student.availability,
+    bio: student.bio,
+    phoneNumber: student.phoneNumber,
+    profilePictureUrl: student.profilePictureUrl,
+  };
+};
+
 module.exports = {
   registerStudent,
   login,
   requestPasswordReset,
   resetPassword,
   verifyEmail,
+  updateStudentProfile,
 };

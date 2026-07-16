@@ -2,10 +2,13 @@ const { genAI, GEMINI_MODELS } = require('../config/geminiClient');
 const logger = require('../utils/logger');
 
 
-const getSystemPrompt = (role, career, sector) => {
+const getSystemPrompt = (role, career, sector, companyName) => {
   const contextInfo = career ? `El candidato estudia ${career}` : 'El candidato es universitario';
   const sectorInfo = sector ? ` y quiere trabajar en el sector de ${sector}` : '';
-  return `Eres un reclutador senior llamado "Marco" de una empresa real y reconocida (ej. Google, BCP, Microsoft, etc.) del sector seleccionado o afín.
+  const companyInfo = companyName
+    ? ` Trabajas en ${companyName}. Adapta tus preguntas y ejemplos al estilo y cultura de esta empresa.`
+    : ' Trabajas en una empresa real y reconocida (ej. Google, BCP, Microsoft, etc.) del sector seleccionado o afín.';
+  return `Eres un reclutador senior llamado "Marco".${companyInfo}
 
 ESTO ES MUY IMPORTANTE: Cuando menciones el nombre de tu empresa, DEBES ponerlo como un enlace Markdown hipervinculado a su sitio web oficial, por ejemplo: [Google](https://www.google.com) o [Banco de Crédito del Perú](https://www.viabcp.com). Asegúrate de hacer esto al menos en tu presentación inicial.
 
@@ -43,7 +46,7 @@ const ensureArray = (historyData) => {
   return [];
 };
 
-const chatWithGemini = async (chatHistory, simulatedRole, newMessage, career, sector) => {
+const chatWithGemini = async (chatHistory, simulatedRole, newMessage, career, sector, companyName) => {
   const model = genAI.getGenerativeModel({ model: GEMINI_MODELS.FLASH_2_5 });
   const safeChatHistory = ensureArray(chatHistory);
 
@@ -57,7 +60,7 @@ const chatWithGemini = async (chatHistory, simulatedRole, newMessage, career, se
 
   // Siempre inyectamos el system prompt al inicio como primer turno user/model
   const systemTurns = [
-    { role: 'user', parts: [{ text: getSystemPrompt(simulatedRole, career, sector) }] },
+    { role: 'user', parts: [{ text: getSystemPrompt(simulatedRole, career, sector, companyName) }] },
     { role: 'model', parts: [{ text: `Hola, soy Marco. Gracias por tomarte el tiempo. Para la posición de ${simulatedRole}, te haré algunas preguntas para conocerte mejor. Para empezar, ¿puedes presentarte brevemente y contarme qué te motivó a postular a esta área?` }] }
   ];
 

@@ -3,6 +3,8 @@ const { body } = require('express-validator');
 const authController = require('../controllers/authController');
 const validateRequest = require('../middlewares/validateRequest');
 const { adminLoginLimiter, loginLimiter, registerLimiter } = require('../middlewares/rateLimit');
+const authMiddleware = require('../middlewares/authMiddleware');
+const authorize = require('../middlewares/authorize');
 
 const router = express.Router();
 
@@ -154,5 +156,60 @@ router.post(
 );
 
 router.get('/verify-email/:token', authController.verifyEmail);
+
+/**
+ * @swagger
+ * /auth/students/profile:
+ *   put:
+ *     summary: Actualizar perfil de estudiante
+ *     tags: [Auth]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               firstName:
+ *                 type: string
+ *               lastName:
+ *                 type: string
+ *               university:
+ *                 type: string
+ *               career:
+ *                 type: string
+ *               cycle:
+ *                 type: string
+ *               availability:
+ *                 type: string
+ *               bio:
+ *                 type: string
+ *               phoneNumber:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Perfil actualizado correctamente
+ *       404:
+ *         description: Perfil de estudiante no encontrado
+ */
+router.put(
+  '/students/profile',
+  authMiddleware,
+  authorize('student'),
+  [
+    body('firstName').optional({ checkFalsy: true }).trim().escape().isLength({ min: 2, max: 80 }).withMessage('Ingresa nombres válidos.'),
+    body('lastName').optional({ checkFalsy: true }).trim().escape().isLength({ min: 2, max: 80 }).withMessage('Ingresa apellidos válidos.'),
+    body('university').optional({ checkFalsy: true }).trim().escape().isLength({ max: 160 }),
+    body('career').optional({ checkFalsy: true }).trim().escape().isLength({ min: 2, max: 140 }).withMessage('Ingresa una carrera válida.'),
+    body('cycle').optional({ checkFalsy: true }).trim().escape().isLength({ min: 1, max: 30 }).withMessage('Ingresa tu ciclo académico.'),
+    body('availability').optional({ checkFalsy: true }).trim().escape().isLength({ min: 2, max: 80 }).withMessage('Ingresa tu disponibilidad.'),
+    body('bio').optional({ checkFalsy: true }).trim().escape().isLength({ max: 2000 }),
+    body('phoneNumber').optional({ checkFalsy: true }).trim().escape().isLength({ max: 30 }),
+  ],
+  validateRequest,
+  authController.updateStudentProfile,
+);
 
 module.exports = router;
