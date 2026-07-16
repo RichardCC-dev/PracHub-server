@@ -17,10 +17,10 @@
  * se disparen las alertas automáticas (alertService.processNewOffer).
  *
  * Uso:
- *   cd server && node scripts/seedMassive.js
+ *   cd server && node scripts/seeds/seedMassive.js
  *
  * Limpiar:
- *   node scripts/seedMassive.js --clean
+ *   node scripts/seeds/seedMassive.js --clean
  */
 
 require('dotenv').config();
@@ -41,10 +41,10 @@ const {
   SavedCompany,
   DirectMessage,
   Simulation,
-} = require('../src/models');
+} = require('../../src/models');
 
-const adminService = require('../src/services/adminService');
-const alertService = require('../src/services/alertService');
+const adminService = require('../../src/services/adminService');
+const alertService = require('../../src/services/alertService');
 
 // ═══════════════════════════════════════════════════════════════════════
 // CONFIGURACIÓN
@@ -913,7 +913,7 @@ async function createExtraNotifications(students, offers) {
 async function verifyResults(students) {
   log('\n9️⃣  Verificando resultados...\n');
 
-  const recommendationService = require('../src/services/recommendationService');
+  const recommendationService = require('../../src/services/recommendationService');
 
   for (const { student, user } of students) {
     try {
@@ -1001,7 +1001,7 @@ async function run() {
       log(`     company${i + 1}@${DOMAIN} / ${PASSWORD} — ${c.company.tradeName}`);
     });
     log(`\n  📋 ${offers.length} ofertas aprobadas (alertas disparadas)`);
-    log(`\n  🔧 Para limpiar: node scripts/seedMassive.js --clean`);
+    log(`\n  🔧 Para limpiar: node scripts/seeds/seedMassive.js --clean`);
     log('═══════════════════════════════════════\n');
 
     process.exit(0);

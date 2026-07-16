@@ -10,7 +10,7 @@ const {
   Resume,
   Offer,
   AlertSettings,
-} = require('../src/models');
+} = require('../../src/models');
 
 const STUDENT_EMAIL = 'teststudent_alerts@prachub.local';
 const COMPANY_EMAIL = 'testcompany_alerts@prachub.local';
