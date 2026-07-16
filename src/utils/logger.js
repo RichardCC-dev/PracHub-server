@@ -6,10 +6,22 @@ const LOGS_DIR = path.join(__dirname, '../../logs');
 
 const { combine, timestamp, printf, colorize, errors } = format;
 
-// Formato legible para la consola en desarrollo
+// Formato legible para la consola en desarrollo (con colores)
 const devFormat = combine(
   colorize({ all: true }),
   timestamp({ format: 'HH:mm:ss' }),
+  errors({ stack: true }),
+  printf(({ level, message, timestamp, stack }) =>
+    stack ? `[${timestamp}] ${level}: ${message}\n${stack}` : `[${timestamp}] ${level}: ${message}`
+  )
+);
+
+// Formato de consola para producción (sin colores, legible en log streams
+// de contenedores como Railway, que capturan stdout/stderr). Los archivos
+// rotatorios son efímeros en contenedores, por lo que la consola es la única
+// salida visible para depurar caídas en producción.
+const prodConsoleFormat = combine(
+  timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
   errors({ stack: true }),
   printf(({ level, message, timestamp, stack }) =>
     stack ? `[${timestamp}] ${level}: ${message}\n${stack}` : `[${timestamp}] ${level}: ${message}`
@@ -26,12 +38,14 @@ const fileFormat = combine(
 const logger = createLogger({
   level: process.env.LOG_LEVEL || 'info',
   transports: [
-    // Consola (sólo en desarrollo)
-    ...(process.env.NODE_ENV !== 'production'
-      ? [new transports.Console({ format: devFormat })]
-      : []),
+    // Consola: SIEMPRE activa. En desarrollo con colores; en producción con
+    // formato plano para que Railway/contenedores capturen los logs (incluido
+    // los errores que causan crash loops).
+    new transports.Console({
+      format: process.env.NODE_ENV === 'production' ? prodConsoleFormat : devFormat,
+    }),
 
-    // Archivo rotatorio: todos los niveles info+
+    // Archivo rotatorio: todos los niveles info+ (efímero en contenedores)
     new transports.DailyRotateFile({
       filename: path.join(LOGS_DIR, 'app-%DATE%.log'),
       datePattern: 'YYYY-MM-DD',
