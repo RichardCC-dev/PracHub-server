@@ -19,7 +19,7 @@ const AlertHistory = sequelize.define(
       type: DataTypes.INTEGER.UNSIGNED,
       allowNull: false,
       field: 'offer_id',
-      references: { model: 'Offers', key: 'id' },
+      references: { model: 'offers', key: 'id' },
     },
     compatibilityScore: {
       type: DataTypes.INTEGER.UNSIGNED,
