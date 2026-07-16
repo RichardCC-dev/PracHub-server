@@ -81,16 +81,18 @@ app.use(helmet({
 // CLIENT_URL puede ser una URL única o una lista separada por comas, ej:
 //   CLIENT_URL=http://localhost:5173,https://prachub-client.vercel.app
 // Si no se define, se permiten los orígenes de desarrollo habituales.
+// Se normaliza eliminando slashes finales para que coincida con el origin
+// que envía el navegador (nunca lleva slash final).
 const allowedOrigins = (process.env.CLIENT_URL || 'http://localhost:5173,http://localhost:3000')
   .split(',')
-  .map((o) => o.trim())
+  .map((o) => o.trim().replace(/\/+$/, ''))
   .filter(Boolean);
 
 app.use(cors({
   origin: (origin, callback) => {
     // Permitir peticiones sin origin (curl, Postman, server-to-server)
     if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
+      callback(null, origin);
     } else {
       callback(new Error(`CORS: origen no permitido: ${origin}`));
     }
