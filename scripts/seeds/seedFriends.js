@@ -41,16 +41,39 @@ const {
 // CONFIGURACIÓN
 // ═══════════════════════════════════════════════════════════════════════
 const PASSWORD = 'TestPass123!';
-const DOMAIN = 'prachub.test';
 
-// seedMassive: student1..8 | seedExtra: student9..20 | este seed: student21..40
-const STUDENT_OFFSET = 20;
-
+// Dominios institucionales por universidad
 const UNMSM = 'Universidad Nacional Mayor de San Marcos';
 const UTP = 'Universidad Tecnológica del Perú';
 const UPC = 'Universidad Peruana de Ciencias Aplicadas';
 const ISIL = 'Instituto San Ignacio de Loyola';
 const ESAN = 'Universidad ESAN';
+
+const UNI_DOMAINS = {
+  [UNMSM]: 'unmsm.edu.pe',
+  [UTP]: 'utp.edu.pe',
+  [UPC]: 'upc.edu.pe',
+  [ISIL]: 'isil.pe',
+  [ESAN]: 'ue.edu.pe', // dominio de estudiantes de pregrado de Universidad ESAN
+};
+
+// Normaliza un nombre para usarlo en un correo: minúsculas, sin tildes ni ñ
+function normalizeForEmail(str) {
+  return str
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '') // quita tildes
+    .replace(/ñ/g, 'n')
+    .replace(/[^a-z]/g, ''); // solo letras
+}
+
+// Genera correo institucional: primernombre.primerapellido@dominio
+function buildEmail(p) {
+  const first = normalizeForEmail(p.firstName.split(' ')[0]);
+  const last = normalizeForEmail(p.lastName.split(' ')[0]);
+  const domain = UNI_DOMAINS[p.university] || 'prachub.test';
+  return `${first}.${last}@${domain}`;
+}
 
 // ═══════════════════════════════════════════════════════════════════════
 // HELPER: construir un CV completo a partir de un perfil compacto
@@ -430,7 +453,7 @@ async function createFriendStudents(hash) {
 
   for (let i = 0; i < ALL_PROFILES.length; i++) {
     const p = ALL_PROFILES[i];
-    const email = `student${STUDENT_OFFSET + i + 1}@${DOMAIN}`;
+    const email = buildEmail(p);
     const cv = buildCv(p);
 
     let user = await User.findOne({ where: { email } });
@@ -737,8 +760,8 @@ async function run() {
     log('  ✅ SEED FRIENDS COMPLETADO');
     log('═══════════════════════════════════════════════');
     log(`\n  👨‍🎓 Estudiantes creados (${friendStudents.length}):`);
-    friendStudents.forEach((s, i) => {
-      log(`     student${STUDENT_OFFSET + i + 1}@${DOMAIN} / ${PASSWORD} — ${s.student.firstName} ${s.student.lastName} (${s.profile.university} · ${s.student.career})`);
+    friendStudents.forEach((s) => {
+      log(`     ${s.user.email} / ${PASSWORD} — ${s.student.firstName} ${s.student.lastName} (${s.profile.university} · ${s.student.career})`);
     });
     log('═══════════════════════════════════════════════\n');
 
